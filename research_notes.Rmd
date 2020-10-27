@@ -1,0 +1,10 @@
+---
+title: "Research Notes"
+output: github_document
+---
+
+## Gravity Model Notes and Resources
+
+
+## Radiation Model Notes and Resources
+
