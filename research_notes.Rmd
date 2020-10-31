@@ -1,5 +1,6 @@
 ---
 title: "Research Notes"
+output: github_document 
 ---
 
 ## Study that inspired this project
