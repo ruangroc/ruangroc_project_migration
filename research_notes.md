@@ -20,10 +20,18 @@ Research Notes
         models they inspect.
   - [Caleb Robinson’s Python library for working with migration
     data](https://github.com/calebrob6/migration-lib)
-      - MigrationModels.py include python functions for a radiation
-        model (line 70) and a gravity model (line 107). I’m comfortable
-        enough with Python that I can probably interpret the steps those
-        functions take in order to inform my approach in R.
+      - [MigrationModels.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationModels.py)
+        include python functions for a radiation model (line 70) and a
+        gravity model (line 107). I’m comfortable enough with Python
+        that I can probably interpret the steps those functions take in
+        order to inform my approach in R.
+          - His gravity model equation uses matrixes (different from the
+            negative binomial regression approach below, may want to
+            examine the differences)
+          - His gravity model equation also requires users to specify if
+            it uses power or exponential decay (what does that mean?)
+          - Radiation model equation looks similar to the gravity one,
+            but uses a different equation for computing P\[i, j\]
       - [US Migration
         Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data)
       - README has some information on how to [download the
@@ -31,6 +39,8 @@ Research Notes
 
 ## Gravity Model Notes and Resources
 
+  - **Need to choose to implement regression version or matrix
+    version**  
   - [Wikipedia
     page](https://en.wikipedia.org/wiki/Gravity_model_of_migration)
       - Gravity model is derived from Newton’s law of gravity and I’ve
@@ -83,6 +93,14 @@ Research Notes
         volume of movement, and you know the factors influencing it, you
         can predict with reasonable accuracy the outcome of even complex
         movement within a confined system.”
+      - Took notes in a [google
+        doc](https://docs.google.com/document/d/1FBXuk__Yepj9d9vOxqrgbQ1uiV_YX9pO3byxX1NB0vY/edit)
+      - Their approach is to use a negative binomial regression model,
+        which I could adapt to use for migration data beyond their case
+        study (number of vagrants in the UK).
+      - Downloaded their weightingCalculation.r script and it seems
+        pretty simple to use and implement with great interpretability
+        for migration modeling newbies like me
   - [Raul Ramos, “Gravity models: A tool for migration analysis,” IZA
     World of Labor (2016), doi:
     10.15185/izawol.239](https://wol.iza.org/uploads/articles/239/pdfs/gravity-models-tool-for-migration-analysis.pdf)
@@ -97,12 +115,6 @@ Research Notes
             Variables](http://www.cepii.fr/CEPII/en/publications/wp/abstract.asp?NoDoc=3877)
           - [UN International Migration
             Policies](https://www.un.org/en/development/desa/population/theme/policy/wpp2019.asp)
-  - [Emmanuel Letouzé, Mark Purser, Francisco Rodríguez, Matthew
-    Cummins, and others, “Revisiting the migration-development nexus: a
-    gravity model approach”, Human Development Research Paper 44
-    (2009).](https://mpra.ub.uni-muenchen.de/19227/1/MPRA_paper_19227.pdf)
-      - Seems to be a study that used the gravity model on the UN Global
-        Migration database. Might be helpful to review their process.
   - [Masucci, A & Serras, Joan & Johansson, Anders & Batty, Michael.
     (2013). “Gravity versus radiation models: On the importance of scale
     and heterogeneity in commuting flows.” Physical review. E,
@@ -131,6 +143,11 @@ Research Notes
 ## Resources for Working with R
 
   - [R package for gravity models](https://pacha.dev/gravity/)
+    
+      - [Related paper about this
+        package](https://www.ajs.or.at/index.php/ajs/article/view/688)
+      - [Example
+        code](https://pacha.dev/gravity/articles/crash-course-on-gravity-models.html)
 
   - [How to work with matrixes in
     R](https://www.datamentor.io/r-programming/matrix/)

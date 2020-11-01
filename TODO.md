@@ -17,10 +17,10 @@ By the end of:
     
 ### To Do
     [ ] Research and understand radiation model math, inputs, outputs.
-    [ ] Research and understand gravity model math, inputs, outputs.
+    [x] Research and understand gravity model math, inputs, outputs.
     [ ] Download, clean up, perform exploratory analysis of the historical migration data.
-    [ ] Implement working gravity model.
-    [ ] Implement working radiation model.
+    [ ] Implement working gravity model (as described in MigrationModels.py)
+    [ ] Implement working radiation model (as described in MigrationModels.py)
     [ ] Use gravity model to predict future migration patterns.
     [ ] Use radiation model to predict future migration patterns.
     [ ] Package the code to be fully reproducible.
