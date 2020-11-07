@@ -1,0 +1,41 @@
+---
+title: "Let's Get the Data"
+output: github_document 
+---
+
+I want to use more recent data, especially if I plan to predict migration flows in the near future, so I have
+chosen to start with [US Population Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data), which has state inflow and outflow CSVs from 2009-2018. I decided to remove the .xls files from the unzipped folders because I won't be using them. I also had to download the 2017-18 state inflow csv because it wasn't included in the zip file for that year.
+
+Should I have time to extend my models to capture global migration, I plan to use CSV data from [the OECD's International Migrantion Database](https://stats.oecd.org/Index.aspx?DataSetCode=MIG), which has data for the years 2000-2018. I renamed the CSV file 'OECD_migration_data.csv' in the data file.
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+#devtools::load_all()
+```
+
+I'll start by loading the most recent US migration dataset (2017-18) for state inflows.
+```{r}
+US_1718 <- read.csv(here("data", "1718migrationdata", "stateinflow1718.csv"))
+US_1718
+```
+
+And let's compare it to the 2009-10 state inflow data.
+```{r}
+US_0910 <- read.csv(here("data", "state0910", "stateinflow0910.csv"))
+US_0910
+```
+
+We can see that the columns aren't the same for these two tables. We also probably want to put all of this information in the same tibble format for each year so that we can later construct the migration matrices we want.
+```{r}
+
+```
+
+Then it's time to build migration matrices for each year, which can hopefully help us build migration matrices for predicting migration flows within the US in the next few years.
+
+
+
+
+
+
+

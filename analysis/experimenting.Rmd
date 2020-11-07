@@ -1,0 +1,32 @@
+---
+title: "experimenting"
+author: "Anita Ruangrotsakun"
+date: "11/7/2020"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+library(maps)
+#devtools::load_all()
+```
+
+## R Experiments
+
+
+Loading map data of the continental US
+group helps to group all the long and lat values to a specific state/region
+```{r cars}
+states_map <- map_data("state")
+states_map
+```
+
+
+
+```{r}
+ggplot(states_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = region), color = "white")
+```
+
+
