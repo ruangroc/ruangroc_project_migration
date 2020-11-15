@@ -8,6 +8,8 @@ chosen to start with [US Population Migration Data](https://www.irs.gov/statisti
 
 Should I have time to extend my models to capture global migration, I plan to use CSV data from [the OECD's International Migrantion Database](https://stats.oecd.org/Index.aspx?DataSetCode=MIG), which has data for the years 2000-2018. I renamed the CSV file 'OECD_migration_data.csv' in the data file.
 
+(Might switch to doing US counties instead of international migration actually if I have enough time after getting states working)
+
 ```{r setup, message = FALSE, warning = FALSE, include = TRUE}
 library(tidyverse)
 library(here)
@@ -16,20 +18,71 @@ library(here)
 
 I'll start by loading the most recent US migration dataset (2017-18) for state inflows.
 ```{r}
-US_1718 <- read.csv(here("data", "1718migrationdata", "stateinflow1718.csv"))
-US_1718
+load_US_1718 <- read.csv(here("data", "1718migrationdata", "stateinflow1718.csv"))
+load_US_1718
 ```
 
 And let's compare it to the 2009-10 state inflow data.
 ```{r}
-US_0910 <- read.csv(here("data", "state0910", "stateinflow0910.csv"))
-US_0910
+load_US_0910 <- read.csv(here("data", "state0910", "stateinflow0910.csv"))
+load_US_0910
 ```
 
 We can see that the columns aren't the same for these two tables. We also probably want to put all of this information in the same tibble format for each year so that we can later construct the migration matrices we want.
 ```{r}
+# tibble for state totals, will initialize values to -1 then fill in as we load the data
+annual_totals <- tibble(
+  tax_year = c(rep("2009-2010", times = 52), rep("2010-2011", times = 52), rep("2011-2012", times = 52),
+               rep("2012-2013", times = 52), rep("2013-2014", times = 52), rep("2014-2015", times = 52),
+               rep("2015-2016", times = 52), rep("2016-2017", times = 52), rep("2017-2018", times = 52)),
+  state_fips = rep(c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:57), times = 9),
+  out_usa_and_foreign = rep(-1, times = 468),
+  out_usa = rep(-1, times = 468),
+  out_foreign = rep(-1, times = 468),
+  in_usa_and_foreign = rep(-1, times = 468),
+  in_usa = rep(-1, times = 468),
+  in_foreign = rep(-1, times = 468)
+)
+
+# construct each tibble individually, write them out to files, then put them all in one encompassing tibble
+
+# for 2009-2010 data, just ignore the county code column (all zeros)
+load_US_0910 <- read.csv(here("data", "state0910", "stateinflow0910.csv"))
+US_0910 <- tibble(
+  origin_fips <- load_US_0910$State_Code_Origin,
+  dest_fips <- load_US_0910$State_Code_Dest,
+  num_migrants <- load_US_0910$Exmpt_Num
+)
+
 
 ```
+
+Create a tibble for matching state FIPS 
+```{r}
+# 50 states + DC + foreign
+# the data files don't include US territories
+states_fips <- tibble(
+  fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:57),
+  acronym = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", 
+              "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", 
+              "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", 
+              "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", 
+              "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", 
+              "VT", "VA", "WA", "WV", "WI", "WY", "FR"),
+  name = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+           "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia",
+           "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+           "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+           "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+           "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota",
+           "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
+           "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", 
+           "Washington", "West Virginia", "Wisconsin", "Wyoming", "Foreign")
+)
+
+# write it out to a csv to save it
+```
+
 
 Then it's time to build migration matrices for each year, which can hopefully help us build migration matrices for predicting migration flows within the US in the next few years.
 
