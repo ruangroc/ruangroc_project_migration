@@ -1,0 +1,36 @@
+---
+title: "Build Migration Matrices"
+output: github_document
+---
+
+Now it's time to build migration matrices for each year, which can hopefully help us build migration matrices for predicting migration flows within the US in the next few years. Caleb Robinson's [MigrationDataUSA.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationDataUSA.py) will be our reference, though this project will be done in R instead of Python.
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+#devtools::load_all()
+```
+
+## Load the data
+```{r}
+US_0910 <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
+US_1011 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
+US_1112 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
+US_1213 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
+US_1314 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1314.csv"))
+US_1415 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
+US_1516 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
+US_1617 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
+US_1718 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
+```
+
+## Construct one migration matrix for 2009-2010
+```{r}
+
+```
+
+## Construct migration matrices for all years
+```{r}
+
+```
+
