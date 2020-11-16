@@ -45,7 +45,7 @@ clean_and_write <- function(data, name) {
   
   # and remove rows that have the totals, not origin-dest pairs
   data <- subset(data, (data$origin_fips != 0 & data$dest_fips != 0))
-  data <- subset(data, (data$origin_fips <= 57 & data$dest_fips <= 57))
+  data <- subset(data, (data$origin_fips <= 56 & data$dest_fips <= 56))
   
   # and remove rows that count non-migrants (origin and dest states are the same)
   data <- subset(data, (data$origin_fips != data$dest_fips))
@@ -187,16 +187,16 @@ clean_and_write(US_1718, "US_1718.csv")
 
 Let's also create a tibble for matching state FIPS to state acronyms and state names.
 ```{r}
-# 50 states + DC + foreign
+# 50 states + DC (excluding migration outside of the USA)
 # the data files don't include US territories
 states_fips <- tibble(
-  fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:57),
+  fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56),
   acronym = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", 
               "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", 
               "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", 
               "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", 
               "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", 
-              "VT", "VA", "WA", "WV", "WI", "WY", "FR"),
+              "VT", "VA", "WA", "WV", "WI", "WY"),
   name = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
            "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia",
            "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
@@ -205,7 +205,7 @@ states_fips <- tibble(
            "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota",
            "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
            "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", 
-           "Washington", "West Virginia", "Wisconsin", "Wyoming", "Foreign")
+           "Washington", "West Virginia", "Wisconsin", "Wyoming")
 )
 
 # write it out to a csv to save it
