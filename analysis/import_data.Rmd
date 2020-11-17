@@ -188,36 +188,63 @@ clean_and_write(US_1718, "US_1718.csv")
 Let's also create a tibble for matching state FIPS to state acronyms and state names.
 ```{r}
 # 50 states + DC (excluding migration outside of the USA)
-# the data files don't include US territories
+# the data files don't include US territories so I'm not including them either
+# I also plan to calculate distances between states as distances between the 
+# largest city in each state (more likely people are moving to/from bigger cities
+# anyways, but this way I have only one long/lat pair per state to worry about)
+
 states_fips <- tibble(
   fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56),
-  acronym = c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", 
-              "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", 
-              "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", 
-              "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", 
-              "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", 
-              "VT", "VA", "WA", "WV", "WI", "WY"),
+  acronym = c("AL", "AK", "AZ", "AR", "CA", "CO", 
+              "CT", "DE", "DC", "FL", "GA", "HI", 
+              "ID", "IL", "IN", "IA", "KS", "KY", 
+              "LA", "ME", "MD", "MA", "MI", "MN", 
+              "MS", "MO", "MT", "NE", "NV", "NH", 
+              "NJ", "NM", "NY", "NC", "ND", "OH", 
+              "OK", "OR", "PA", "RI", "SC", "SD", 
+              "TN", "TX", "UT", "VT", "VA", "WA", 
+              "WV", "WI", "WY"),
   name = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-           "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia",
-           "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+           "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii",
+            "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
            "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
            "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
-           "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota",
-           "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
-           "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", 
-           "Washington", "West Virginia", "Wisconsin", "Wyoming")
+           "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", 
+           "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", 
+           "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", 
+           "West Virginia", "Wisconsin", "Wyoming"),
+  largest_city = c("Birmingham", "Anchorage", "Phoenix", "Little Rock", "Los Angeles", "Denver",
+                   "Bridgeport", "Wilmington", "Washington", "Jacksonville", "Atlanta", "Honolulu",
+                   "Boise", "Chicago", "Indianapolis", "Des Moines", "Wichita", "Louisville",
+                   "New orleans", "Portland", "Baltimore", "Boston", "Detroit", "Minneapolis", 
+                   "Jackson", "Kansas City", "Billings", "Omaha", "Las Vegas", "Manchester",
+                   "Newark", "Albuquerque", "New York City", "Charlotte", "Fargo", "Columbus", 
+                   "Oklahoma City", "Portland", "Philadelphia", "Providence", "Charleston", "Sioux Falls", 
+                   "Nashville", "Houston", "Salt Lake City", "Burlington", "Virginia Beach", "Seattle", 
+                   "Charleston", "Milwaukee", "Cheyenne"),
+  latitude = c(33.52, 61.22, 33.45, 34.75, 34.05, 39.74, 
+               41.18, 39.74, 38.89, 30.33, 33.75, 21.30, 
+               43.62, 41.88, 39.77, 41.58, 37.69, 38.21,
+               29.98, 43.68, 39.31, 42.33, 42.36, 44.98,
+               32.31, 39.03, 45.79, 41.26, 36.17, 42.99,
+               40.74, 35.10, 40.67, 35.21, 46.89, 39.96,
+               35.52, 45.52, 39.96, 41.82, 32.79, 43.54,
+               36.15, 29.73, 40.77, 44.47, 36.81, 47.60,
+               38.35, 43.04, 41.13),
+  longitude = c(-86.81, -149.90, -112.07, -92.29, -118.24, -104.99, 
+                -73.19, -75.55, -77.03, -81.66, -84.39, -157.86,
+                -116.20, -87.63, -86.15, -93.61, -97.33, -85.65,
+                -90.03, -70.30, -76.62, -71.08, -83.08, -93.27,
+                -90.20, -94.56, -108.52, -96.02, -115.19, -71.45,
+                -74.18, -106.66, -73.98, -80.84, -96.81, -82.99,
+                -97.50, -122.67, -75.15, -71.41, -79.94, -96.73,
+                -86.77, -95.39, -111.89, -73.21, -76.12, -122.33,
+                -81.63, -87.91, -104.82)
 )
 
 # write it out to a csv to save it
 filename <- here("results", "data_cleaning_results", "states_fips.csv")
 write.csv(states_fips, file = filename, row.names = FALSE)
 ```
-
-
-
-
-
-
-
 
 
