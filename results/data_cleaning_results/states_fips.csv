@@ -1,52 +1,52 @@
-"fips","acronym","name"
-1,"AL","Alabama"
-2,"AK","Alaska"
-4,"AZ","Arizona"
-5,"AR","Arkansas"
-6,"CA","California"
-8,"CO","Colorado"
-9,"CT","Connecticut"
-10,"DE","Delaware"
-11,"DC","District of Columbia"
-12,"FL","Florida"
-13,"GA","Georgia"
-15,"HI","Hawaii"
-16,"ID","Idaho"
-17,"IL","Illinois"
-18,"IN","Indiana"
-19,"IA","Iowa"
-20,"KS","Kansas"
-21,"KY","Kentucky"
-22,"LA","Louisiana"
-23,"ME","Maine"
-24,"MD","Maryland"
-25,"MA","Massachusetts"
-26,"MI","Michigan"
-27,"MN","Minnesota"
-28,"MS","Mississippi"
-29,"MO","Missouri"
-30,"MT","Montana"
-31,"NE","Nebraska"
-32,"NV","Nevada"
-33,"NH","New Hampshire"
-34,"NJ","New Jersey"
-35,"NM","New Mexico"
-36,"NY","New York"
-37,"NC","North Carolina"
-38,"ND","North Dakota"
-39,"OH","Ohio"
-40,"OK","Oklahoma"
-41,"OR","Oregon"
-42,"PA","Pennsylvania"
-44,"RI","Rhode Island"
-45,"SC","South Carolina"
-46,"SD","South Dakota"
-47,"TN","Tennessee"
-48,"TX","Texas"
-49,"UT","Utah"
-50,"VT","Vermont"
-51,"VA","Virginia"
-53,"WA","Washington"
-54,"WV","West Virginia"
-55,"WI","Wisconsin"
-56,"WY","Wyoming"
+"fips","acronym","name","largest_city","latitude","longitude"
+1,"AL","Alabama","Birmingham",33.52,-86.81
+2,"AK","Alaska","Anchorage",61.22,-149.9
+4,"AZ","Arizona","Phoenix",33.45,-112.07
+5,"AR","Arkansas","Little Rock",34.75,-92.29
+6,"CA","California","Los Angeles",34.05,-118.24
+8,"CO","Colorado","Denver",39.74,-104.99
+9,"CT","Connecticut","Bridgeport",41.18,-73.19
+10,"DE","Delaware","Wilmington",39.74,-75.55
+11,"DC","District of Columbia","Washington",38.89,-77.03
+12,"FL","Florida","Jacksonville",30.33,-81.66
+13,"GA","Georgia","Atlanta",33.75,-84.39
+15,"HI","Hawaii","Honolulu",21.3,-157.86
+16,"ID","Idaho","Boise",43.62,-116.2
+17,"IL","Illinois","Chicago",41.88,-87.63
+18,"IN","Indiana","Indianapolis",39.77,-86.15
+19,"IA","Iowa","Des Moines",41.58,-93.61
+20,"KS","Kansas","Wichita",37.69,-97.33
+21,"KY","Kentucky","Louisville",38.21,-85.65
+22,"LA","Louisiana","New orleans",29.98,-90.03
+23,"ME","Maine","Portland",43.68,-70.3
+24,"MD","Maryland","Baltimore",39.31,-76.62
+25,"MA","Massachusetts","Boston",42.33,-71.08
+26,"MI","Michigan","Detroit",42.36,-83.08
+27,"MN","Minnesota","Minneapolis",44.98,-93.27
+28,"MS","Mississippi","Jackson",32.31,-90.2
+29,"MO","Missouri","Kansas City",39.03,-94.56
+30,"MT","Montana","Billings",45.79,-108.52
+31,"NE","Nebraska","Omaha",41.26,-96.02
+32,"NV","Nevada","Las Vegas",36.17,-115.19
+33,"NH","New Hampshire","Manchester",42.99,-71.45
+34,"NJ","New Jersey","Newark",40.74,-74.18
+35,"NM","New Mexico","Albuquerque",35.1,-106.66
+36,"NY","New York","New York City",40.67,-73.98
+37,"NC","North Carolina","Charlotte",35.21,-80.84
+38,"ND","North Dakota","Fargo",46.89,-96.81
+39,"OH","Ohio","Columbus",39.96,-82.99
+40,"OK","Oklahoma","Oklahoma City",35.52,-97.5
+41,"OR","Oregon","Portland",45.52,-122.67
+42,"PA","Pennsylvania","Philadelphia",39.96,-75.15
+44,"RI","Rhode Island","Providence",41.82,-71.41
+45,"SC","South Carolina","Charleston",32.79,-79.94
+46,"SD","South Dakota","Sioux Falls",43.54,-96.73
+47,"TN","Tennessee","Nashville",36.15,-86.77
+48,"TX","Texas","Houston",29.73,-95.39
+49,"UT","Utah","Salt Lake City",40.77,-111.89
+50,"VT","Vermont","Burlington",44.47,-73.21
+51,"VA","Virginia","Virginia Beach",36.81,-76.12
+53,"WA","Washington","Seattle",47.6,-122.33
+54,"WV","West Virginia","Charleston",38.35,-81.63
+55,"WI","Wisconsin","Milwaukee",43.04,-87.91
+56,"WY","Wyoming","Cheyenne",41.13,-104.82
