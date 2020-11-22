@@ -1,0 +1,171 @@
+---
+title: "Gravity Model"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+library(Imap)
+library(Rmpfr)
+#devtools::load_all()
+```
+
+## Load historical data (for comparison with model predictions)
+```{r}
+# US_0910 <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
+# US_1011 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
+# US_1112 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
+# US_1213 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
+# US_1314 <- read.csv(here("results", "data_cleaning_results", "clean",  "US_1314.csv"))
+# US_1415 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
+# US_1516 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
+# US_1617 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
+# US_1718 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
+# states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
+# pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+```
+
+## Background research
+As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
+
+  * $T_{ij}$ is the number of people moving from every zone i to every other zone j
+  * $G_i = \alpha * m_i$ is the production function that estimates number of people leaving zone i
+    * $m_i$ is the population of zone i and alpha is a parameter tuned using historical data
+  * $P_{ij}$ is the probability of a move occurring from i to j
+    * Robinson and Dilkina note that the probability of moving from i to all other destinations j should sum to 1
+
+```{r pressure, echo=FALSE, out.width = '75%'}
+knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dilkina_Table_1.PNG"))
+```
+
+I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model equations. I will also implement the gravity model using both the power law and exponential decay variants, which are just different ways of calculating the effect distance has on the probability of moving from state i to state j.
+
+I'll put the results of each of the models in this output tibble.
+```{r}
+outputs <- tibble(
+  year = c("2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18")
+)
+```
+What will this even hold? tibbles?
+
+
+## What do I need to do?
+
+Matrices to create:
+* distances between all i and j
+* m_i for all zones i (each row is a zone i)
+* G_i = alpha * m_i
+* m_j for all zones j (each column is a zone j)
+* d^-alpha matrix
+* numerator = m_i * m_j * d^alpha
+* row_sums (single value for each row, the value being the sum of all values in the numerator row)
+* P_ij = numerator / row_sums
+
+Are m_i and m_j the same matrix?
+
+## Create distances matrix for all (i, j)
+```{r}
+locations <- tibble(
+  origin = rep(states_fips$fips, each = 51),
+  origin_lon = rep(states_fips$longitude, each = 51),
+  origin_lat = rep(states_fips$latitude, each = 51),
+  dest = rep(states_fips$fips, times = 51),
+  dest_lon = rep(states_fips$longitude, times = 51),
+  dest_lat = rep(states_fips$latitude, times = 51)
+)
+
+
+locations <- locations %>%
+  mutate(
+    distance = pmap_dbl(list(origin_lon, origin_lat, dest_lon, dest_lat, units = "miles"), gdist)
+  )
+
+filename <- here("results", "distances_between_states.csv")
+write.csv(locations, file = filename, row.names = FALSE)
+
+# it was filling with negative values for some reason
+distances <-- matrix(-locations$distance, nrow = 51, ncol = 51, byrow = TRUE)
+colnames(distances) <- states_fips$fips
+rownames(distances) <- states_fips$fips
+```
+
+
+## Create m_i and m_j matrices
+Filling the values in by column means there'll be the same value for each row
+```{r}
+m_i <- matrix(rep(pop_estimates$year_2009, times = 51), nrow = 51, ncol = 51)
+# m_i <- matrix(pop_estimates$year_2009, nrow = 1)
+colnames(m_i) <- states_fips$fips
+
+m_j <- matrix(rep(pop_estimates$year_2009, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
+# m_j <- matrix(pop_estimates$year_2009, ncol = 1)
+rownames(m_j) <- states_fips$fips
+
+# produces large values in scientific notation (to the powers of 11 to 14 mostly)
+mi_x_mj <- as.numeric(m_i) * as.numeric(m_j)
+
+all.equal(pop_estimates$"year_2009", pop_estimates$year_2009)
+# all.equal(pop_estimates$fips, states_fips$fips)
+```
+
+
+## Create the other matrices
+```{r}
+G_i <- 0.3 * m_i
+
+d_alpha <- distances^-0.3
+# replace Inf values with 0
+d_alpha[!is.finite(d_alpha)] <- 0
+
+numerator <- d_alpha * m_i * m_j
+P_ij <- numerator / rowSums(numerator)
+
+T_ij <- G_i * P_ij
+```
+
+
+## Create a function to do all of this for every single dataset
+```{r}
+# option: 0 for power law, 1 for exponential decay
+gravity_model <- function(data, names, alpha, option = 0) {
+  
+  # load population estimates for each state for the given year
+  m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
+  colnames(m_i) <- names
+  m_j <- matrix(rep(data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
+  rownames(m_j) <- names
+  
+  # load distance matrix
+  locations <- read.csv(here("results", "distances_between_states.csv"))
+  distances <-- matrix(-locations$distance, nrow = 51, ncol = 51, byrow = TRUE)
+  colnames(distances) <- names
+  rownames(distances) <- names
+  
+  d_alpha <- 0
+  if (option == 1) {
+    d_alpha <- exp(-alpha*distances)
+  }
+  else {
+    d_alpha <- distances^(-alpha)
+  }
+  print(d_alpha)
+  
+  G_i <- alpha * m_i
+  numerator <- d_alpha * m_i * m_j
+  P_ij <- numerator / rowSums(numerator)
+
+  T_ij <- G_i * P_ij
+  return(T_ij)
+}
+```
+
+Let's test this
+```{r}
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+T_ij <- gravity_model(pop_estimates$year_2009, pop_estimates$fips, 0.3, 0)
+# T_ij
+
+# gravity_model("year_2009", 0.3, 1)
+```
+
