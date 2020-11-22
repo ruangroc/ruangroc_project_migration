@@ -1,0 +1,183 @@
+---
+title: "Migration Models"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+#devtools::load_all()
+```
+
+## Load the data
+```{r}
+US_0910 <- read.csv(here("results", "calculated_distances", "US_0910_with_distances.csv"))
+US_1011 <- read.csv(here("results", "calculated_distances", "US_1011_with_distances.csv"))
+US_1112 <- read.csv(here("results", "calculated_distances", "US_1112_with_distances.csv"))
+US_1213 <- read.csv(here("results", "calculated_distances", "US_1213_with_distances.csv"))
+US_1314 <- read.csv(here("results", "calculated_distances", "US_1314_with_distances.csv"))
+US_1415 <- read.csv(here("results", "calculated_distances", "US_1415_with_distances.csv"))
+US_1516 <- read.csv(here("results", "calculated_distances", "US_1516_with_distances.csv"))
+US_1617 <- read.csv(here("results", "calculated_distances", "US_1617_with_distances.csv"))
+US_1718 <- read.csv(here("results", "calculated_distances", "US_1718_with_distances.csv"))
+states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+```
+
+
+## Background research
+As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
+
+  * $T_{ij}$ is the number of people moving from every zone i to every other zone j
+  * $G_i = \alpha * m_i$ is the production function that estimates number of people leaving zone i
+    * $m_i$ is the population of zone i and alpha is a parameter tuned using historical data
+  * $P_{ij}$ is the probability of a move occurring from i to j
+    * Robinson and Dilkina note that the probability of moving from i to all other destinations j should sum to 1
+
+```{r pressure, echo=FALSE, out.width = '75%'}
+knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dilkina_Table_1.PNG"))
+```
+
+I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model equations. I will also implement the gravity model using both the power law and exponential decay variants, which are just different ways of calculating the effect distance has on the probability of moving from state i to state j.
+
+I'll put the results of each of the models in this output tibble.
+```{r}
+outputs <- tibble(
+  year = c("2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18")
+)
+```
+
+
+## Gravity model with power law
+
+First add a column for the production function, $G_i$, estimates.
+```{r}
+est_production_fn <- function(data, alpha) {
+  data <- data %>% mutate(
+    G_i = alpha * data$m_i
+  )
+}
+
+alpha <- 0.3
+US_0910 <- est_production_fn(US_0910, alpha)
+US_1011 <- est_production_fn(US_1011, alpha)
+US_1112 <- est_production_fn(US_1112, alpha)
+US_1213 <- est_production_fn(US_1213, alpha)
+US_1314 <- est_production_fn(US_1314, alpha)
+US_1415 <- est_production_fn(US_1415, alpha)
+US_1516 <- est_production_fn(US_1516, alpha)
+US_1617 <- est_production_fn(US_1617, alpha)
+US_1718 <- est_production_fn(US_1718, alpha)
+```
+
+The numerator for $P_ij$ will simply be m_i * m_j * distance^(-alpha), which is already stored in each row of the US_year tibbles.
+Now we just need to determine the denominators, but to avoid needing to calculate it for every row, let's pre-compute all the denominator values.
+
+We'll store the final denominator results in this tibble. We'll set it up and come back to it later.
+```{r}
+P_ij_denoms <- tibble(
+  year = rep(c(2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017), each = 51),
+  i = rep(states_fips$fips, times = 9)
+)
+```
+
+I didn't think ahead to just make a distance matrix so now we have to set up an intermediate tibble that holds all the combinations of state fips (i = origin zone, k = destination zone) and the population of zone k (which will be specific to each annual dataset). Let's set up one of these intermediate tibbles for each year of data we have on hand (2009 thru 2017).
+```{r}
+get_denoms <- function(pop_est_year) {
+  data <- tibble(
+    i = rep(states_fips$fips, each = 51),
+    k = rep(states_fips$fips, times = 51),
+    m_k = rep(pop_est_year, times = 51)
+  )
+  
+  data <- left_join(data, states_fips %>% select(fips, latitude, longitude), by = c("i" = "fips"))
+  data <- rename(data, i_lat = latitude, i_lon = longitude)
+  data <- left_join(data, states_fips  %>% select(fips, latitude, longitude), by = c("k" = "fips"))
+  data <- rename(data, k_lat = latitude, k_lon = longitude)
+  
+  data <- data %>% 
+    mutate(
+      d_ik = pmap_dbl(list(i_lon, i_lat, k_lon, k_lat, units = "miles"), gdist)
+    )
+}
+
+P_ij_denom_2009 <- get_denoms(pop_estimates$year_2009)
+P_ij_denom_2010 <- get_denoms(pop_estimates$year_2010)
+P_ij_denom_2011 <- get_denoms(pop_estimates$year_2011)
+P_ij_denom_2012 <- get_denoms(pop_estimates$year_2012)
+P_ij_denom_2013 <- get_denoms(pop_estimates$year_2013)
+P_ij_denom_2014 <- get_denoms(pop_estimates$year_2014)
+P_ij_denom_2015 <- get_denoms(pop_estimates$year_2015)
+P_ij_denom_2016 <- get_denoms(pop_estimates$year_2016)
+P_ij_denom_2017 <- get_denoms(pop_estimates$year_2017)
+```
+
+Now that we have all the important values, we need to do the summation of the values (the denominator of the $P_{ij}$ equation for "Gravity with Power Law" entry in Table 1).
+
+```{r}
+# First define some useful functions
+
+# multiplies and returns the summation
+get_sum <- function(data, fips) {
+  inner <- subset(data, i == fips)$m_k * ((subset(data, i == fips)$d_ik) ^ -alpha)
+  sum(inner)
+}
+
+get_sum_for_dataset <- function(data) {
+  map_dbl(unique(data$i), ~ get_sum(data, .))
+}
+
+# Create a new column of values that will be added to P_ij_denoms as a new column, denom
+new_col <- c()
+
+# Determine the denominator for P_ij for all i's for each year of data
+results <- get_sum_for_dataset(P_ij_denom_2009)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2010)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2011)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2012)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2013)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2014)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2015)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2016)
+new_col <- c(new_col, results)
+
+results <- get_sum_for_dataset(P_ij_denom_2017)
+new_col <- c(new_col, results)
+
+# Finally, add the denominators as a column and take a peek at the final tibble
+P_ij_denoms <- P_ij_denoms %>%
+  mutate(
+    denoms = new_col
+  )
+
+head(P_ij_denoms)
+```
+
+
+
+
+
+## Gravity model with exponential decay
+```{r}
+
+```
+
+
+## Radiation model
+```{r}
+
+```

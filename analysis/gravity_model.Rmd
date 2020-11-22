@@ -1,0 +1,14 @@
+---
+title: "Gravity Model"
+output: github_document
+---
+
+## Build a gravity model
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+library(Imap)
+#devtools::load_all()
+```
+
