@@ -175,13 +175,53 @@ Let's test this
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 
 alpha <- 0.3
-data_year <- "year_2009"
-
-as_tibble(select(pop_estimates, !!data_year))
 
 T_ij <- gravity_model(pop_estimates$year_2009, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha), as.character(data_year), ".csv", sep = '')
+filename <- paste("alpha_",as.character(alpha), "_US0910.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+```
+
+And then run it for all the other years too
+```{r}
+T_ij <- gravity_model(pop_estimates$year_2010, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1011.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2011, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1112.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2012, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1213.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2013, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1314.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2014, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1415.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2015, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1516.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2016, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1617.csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
+
+T_ij <- gravity_model(pop_estimates$year_2017, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), "_US1718.csv", sep = '')
 write.csv(result, here("results", "gravity_model_results", filename))
 ```
 
