@@ -39,7 +39,7 @@ As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina
 knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dilkina_Table_1.PNG"))
 ```
 
-I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model equations. I will also implement the gravity model using both the power law and exponential decay variants, which are just different ways of calculating the effect distance has on the probability of moving from state i to state j.
+I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model with power law equation, which is what they appeared to do in their [MigrationModels.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationModels.py) file.
 
 I'll put the results of each of the models in this output tibble.
 ```{r}
@@ -83,6 +83,12 @@ locations <- locations %>%
 
 filename <- here("results", "distances_between_states.csv")
 write.csv(locations, file = filename, row.names = FALSE)
+```
+
+
+```{r}
+states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
 
 # it was filling with negative values for some reason
 distances <-- matrix(-locations$distance, nrow = 51, ncol = 51, byrow = TRUE)
@@ -101,16 +107,10 @@ colnames(m_i) <- states_fips$fips
 m_j <- matrix(rep(pop_estimates$year_2009, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
 # m_j <- matrix(pop_estimates$year_2009, ncol = 1)
 rownames(m_j) <- states_fips$fips
-
-# produces large values in scientific notation (to the powers of 11 to 14 mostly)
-mi_x_mj <- as.numeric(m_i) * as.numeric(m_j)
-
-all.equal(pop_estimates$"year_2009", pop_estimates$year_2009)
-# all.equal(pop_estimates$fips, states_fips$fips)
 ```
 
 
-## Create the other matrices
+## Test area
 ```{r}
 G_i <- 0.3 * m_i
 
@@ -118,17 +118,22 @@ d_alpha <- distances^-0.3
 # replace Inf values with 0
 d_alpha[!is.finite(d_alpha)] <- 0
 
-numerator <- d_alpha * m_i * m_j
-P_ij <- numerator / rowSums(numerator)
+part1 <- d_alpha * m_j
+numerator <- part1 * m_i
+denom <- matrix(rep(rowSums(part1), times = 51), nrow = 51, ncol = 51)
+P_ij <- numerator / denom
+# Now the calculation should be right, but maybe normalization happens after this step (gotta take row sums of P_ij)
 
+normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
+P_ij <- P_ij / normalize
 T_ij <- G_i * P_ij
+T_ij <- round(T_ij, 4)
 ```
 
 
-## Create a function to do all of this for every single dataset
+## Create a function to compute gravity model prediction for every single dataset
 ```{r}
-# option: 0 for power law, 1 for exponential decay
-gravity_model <- function(data, names, alpha, option = 0) {
+gravity_model <- function(data, names, alpha) {
   
   # load population estimates for each state for the given year
   m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
@@ -142,20 +147,25 @@ gravity_model <- function(data, names, alpha, option = 0) {
   colnames(distances) <- names
   rownames(distances) <- names
   
-  d_alpha <- 0
-  if (option == 1) {
-    d_alpha <- exp(-alpha*distances)
-  }
-  else {
-    d_alpha <- distances^(-alpha)
-  }
-  print(d_alpha)
+  d_alpha <- distances^(-alpha)
+  d_alpha[!is.finite(d_alpha)] <- 0
   
   G_i <- alpha * m_i
-  numerator <- d_alpha * m_i * m_j
-  P_ij <- numerator / rowSums(numerator)
+  
+  part1 <- d_alpha * m_j
+  numerator <- m_i * part1
+  numerator[!is.finite(numerator)] <- 0
+  
+  denom <- matrix(rep(rowSums(part1), times = 51), nrow = 51, ncol = 51)
+  
+  P_ij <- numerator / denom
+  
+  normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
+  P_ij <- P_ij / normalize
 
   T_ij <- G_i * P_ij
+  T_ij[T_ij < 0] <- 0
+  
   return(T_ij)
 }
 ```
@@ -163,9 +173,15 @@ gravity_model <- function(data, names, alpha, option = 0) {
 Let's test this
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
-T_ij <- gravity_model(pop_estimates$year_2009, pop_estimates$fips, 0.3, 0)
-# T_ij
 
-# gravity_model("year_2009", 0.3, 1)
+alpha <- 0.3
+data_year <- "year_2009"
+
+as_tibble(select(pop_estimates, !!data_year))
+
+T_ij <- gravity_model(pop_estimates$year_2009, pop_estimates$fips, 0.3)
+result <- round(T_ij, 4)
+filename <- paste("alpha_",as.character(alpha), as.character(data_year), ".csv", sep = '')
+write.csv(result, here("results", "gravity_model_results", filename))
 ```
 
