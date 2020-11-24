@@ -9,28 +9,12 @@ library(Rmpfr)
 #devtools::load_all()
 ```
 
-## Load historical data (for comparison with model predictions)
-```{r}
-# US_0910 <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
-# US_1011 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
-# US_1112 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
-# US_1213 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
-# US_1314 <- read.csv(here("results", "data_cleaning_results", "clean",  "US_1314.csv"))
-# US_1415 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
-# US_1516 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
-# US_1617 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
-# US_1718 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
-states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
-pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
-locations <- read.csv(here("results", "distances_between_states.csv"))
-```
-
 ## Background research
 As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
 
   * $T_{ij}$ is the number of people moving from every zone i to every other zone j
   * $G_i = \alpha * m_i$ is the production function that estimates number of people leaving zone i
-    * $m_i$ is the population of zone i and alpha is a parameter tuned using historical data
+    * $m_i$ is the population of zone i and $\alpha$ is a parameter tuned using historical data
   * $P_{ij}$ is the probability of a move occurring from i to j
     * Robinson and Dilkina note that the probability of moving from i to all other destinations j should sum to 1
 
@@ -40,84 +24,159 @@ knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dil
 
 To implement the radiation model, we'll need to create a matrix, $S_{ij}$ that will provide us with intervening opportunities between zones i and j that migrants would likely consider while moving to zone j.
 
-## What do I need to do?
-* Create S_ij
-* Calculate P_ij
-* Write function to calculate T_ij
-* Run the function for all 9 datasets on hand
-* Move on to comparisons with historical data, finetuning model hyperparameters, and predicting future migration
-
 ## Create S_ij
 
 $s_{ij}$ is defined as the population of all zones between i and j (excluding zones i and j) within a circle centered at i with radius d_ij. This means we'll need to use our matrices for distances between zones and population estimates for every zone.
-
-**Need to make this into a function**
 ```{r}
-# pair distances and population estimates together in a tibble
-all_data <- locations %>% mutate(
-  pop = rep(pop_estimates$year_2009, times = 51)
-)
-all_data <- all_data %>% select(origin, dest, distance, pop)
-all_data <- arrange(all_data, origin, distance)
-
-# calculate cumulative sums of populations in intervening zones for each i (origin state)
-results <- map(pop_estimates$fips, ~ c(0, cumsum(subset(all_data, origin == . & dest != 1)$pop)))
-all_data <- all_data %>% mutate(
-  sums = unlist(results, recursive = FALSE)
-)
-
-# rearrange the tibble to be in matrix order again, then store sum results as S_ij
-all_data <- arrange(all_data, origin, dest)
-S_ij <- matrix(as.vector(all_data$sums), nrow = 51, ncol = 51)
-colnames(S_ij) <- states_fips$fips
-rownames(S_ij) <- states_fips$fips
-
-filename <- here("results", "radiation_model_results", "intervening_opportunities_2009.csv")
-write.csv(S_ij, filename, row.names = FALSE)
+get_intervening_opps <- function(locations, year_data, fips, filename) {
+  
+  # pair distances and population estimates together in a tibble
+  all_data <- locations %>% mutate(
+    pop = rep(year_data, times = 51)
+  )
+  all_data <- all_data %>% select(origin, dest, distance, pop)
+  all_data <- arrange(all_data, origin, distance)
+  
+  # calculate cumulative sums of populations in intervening zones for each i (origin state)
+  results <- map(fips, ~ c(0, cumsum(subset(all_data, origin == . & dest != 1)$pop)))
+  all_data <- all_data %>% mutate(
+    sums = unlist(results, recursive = FALSE)
+  )
+  
+  # rearrange the tibble to be in matrix order again, then store sum results as S_ij
+  all_data <- arrange(all_data, origin, dest)
+  S_ij <- matrix(as.vector(all_data$sums), nrow = 51, ncol = 51)
+  colnames(S_ij) <- fips
+  rownames(S_ij) <- fips
+  
+  write.csv(S_ij, filename, row.names = FALSE)
+}
 ```
 
-## Calculate T_ij
+Let's generate intervening opportunities for all the datasets we have.
 ```{r}
-names <- pop_estimates$fips
-data <- pop_estimates$year_2009
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
 
-m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
-colnames(m_i) <- names
+get_intervening_opps(locations, pop_estimates$year_2009, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2009.csv"))
 
-m_j <- matrix(rep(data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
-rownames(m_j) <- names
+get_intervening_opps(locations, pop_estimates$year_2010, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2010.csv"))
 
-S_ij <- as.matrix(read.csv(here("results", "radiation_model_results", "intervening_opportunities_2009.csv")), nrow = 51, ncol = 51)
+get_intervening_opps(locations, pop_estimates$year_2011, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2011.csv"))
 
-alpha <- 0.3
-G_i <- alpha * m_i
+get_intervening_opps(locations, pop_estimates$year_2012, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2012.csv"))
 
-num <- matrix(as.double(mpfr(m_i, precBits = 4) * mpfr(m_j, precBits = 4)), nrow = 51, ncol = 51)
+get_intervening_opps(locations, pop_estimates$year_2013, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2013.csv"))
 
-denom1 <- as.matrix(m_i + S_ij)
-denom2 <- as.matrix(m_i + m_j + S_ij)
+get_intervening_opps(locations, pop_estimates$year_2014, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2014.csv"))
 
-denom <- matrix((mpfr(denom1, precBits = 4) * mpfr(denom2, precBits = 4)), nrow = 51, ncol = 51)
+get_intervening_opps(locations, pop_estimates$year_2015, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2015.csv"))
 
-d <- matrix(as.double(denom), nrow = 51, ncol = 51)
+get_intervening_opps(locations, pop_estimates$year_2016, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2016.csv"))
 
-P_ij <- num / d
-P <- round(P_ij, 4)
-
-normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
-P_ij <- P_ij / normalize
-
-T_ij <- round(G_i * P_ij, 4)
+get_intervening_opps(locations, pop_estimates$year_2017, pop_estimates$fips, 
+                     here("results", "radiation_model_results", "intervening_opportunities_2017.csv"))
 ```
 
 
 ## Create function for calculating T_ij
 ```{r}
+radiation_model <- function(pop_data, intervening_data, names, alpha) {
+  
+  # load population estimates for each state for the given year
+  m_i <- matrix(rep(pop_data, times = 51), nrow = 51, ncol = 51)
+  colnames(m_i) <- names
+  m_j <- matrix(rep(pop_data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
+  rownames(m_j) <- names
+  
+  S_ij <- as.matrix(read.csv(intervening_data), nrow = 51, ncol = 51)
+  
+  G_i <- alpha * m_i
+  
+  # Calculate P_ij in parts (have to handle computation with very large numbers)
+  num <- matrix(as.double(mpfr(m_i, precBits = 4) * mpfr(m_j, precBits = 4)), nrow = 51, ncol = 51)
 
-
+  denom1 <- as.matrix(m_i + S_ij)
+  denom2 <- as.matrix(m_i + m_j + S_ij)
+  denom <- matrix((mpfr(denom1, precBits = 4) * mpfr(denom2, precBits = 4)), nrow = 51, ncol = 51)
+  d <- matrix(as.double(denom), nrow = 51, ncol = 51)
+  
+  P_ij <- num / d
+  normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
+  P_ij <- P_ij / normalize
+  
+  # Then calculate the migration matrix T_ij
+  T_ij <- round(G_i * P_ij, 4)
+  return(T_ij)
+}
 ```
 
 
+Now let's get radiation model estimates for every year of data we have on hand.
+```{r}
+alpha_value <- 0.3
 
+T_ij <- radiation_model(pop_estimates$year_2009, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2009.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US0910.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2010, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2010.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1011.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2011, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2011.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1112.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2012, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2012.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1213.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2013, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2013.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1314.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2014, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2014.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1415.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2015, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2015.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1516.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2016, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2016.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1617.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+
+T_ij <- radiation_model(pop_estimates$year_2017, alpha = alpha_value, 
+                        here("results", "radiation_model_results", "intervening_opportunities_2017.csv"), 
+                        pop_estimates$fips)
+filename <- paste("alpha_",as.character(alpha_value), "_US1718.csv", sep = '')
+write.csv(T_ij, here("results", "radiation_model_results", filename), row.names = FALSE)
+```
 
 

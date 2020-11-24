@@ -28,7 +28,7 @@ By the end of:
     [x] Download and clean up the data.
     [ ] Perform exploratory analysis of the historical migration data.
     [x] Implement working gravity model (as described in MigrationModels.py)
-    [ ] Create visualizations to compare the gravity model to historical data (and fine a good value for alpha)
+    [ ] Create visualizations to compare the gravity model to historical data (and find a good value for alpha)
     [x] Implement working radiation model (as described in MigrationModels.py)
     [ ] Use gravity model to predict future migration patterns.
     [ ] Use radiation model to predict future migration patterns.
