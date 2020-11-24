@@ -23,13 +23,13 @@ By the end of:
 * Dec. 6: Make sure code is fully reproducible and fully documented. Complete project deliverables (project report, opted out of the presentation as ST441 student).
     
 ### To Do
-    [ ] Research and understand radiation model math, inputs, outputs.
+    [x] Research and understand radiation model math, inputs, outputs.
     [x] Research and understand gravity model math, inputs, outputs.
     [x] Download and clean up the data.
     [ ] Perform exploratory analysis of the historical migration data.
     [x] Implement working gravity model (as described in MigrationModels.py)
     [ ] Create visualizations to compare the gravity model to historical data (and fine a good value for alpha)
-    [ ] Implement working radiation model (as described in MigrationModels.py)
+    [x] Implement working radiation model (as described in MigrationModels.py)
     [ ] Use gravity model to predict future migration patterns.
     [ ] Use radiation model to predict future migration patterns.
     [ ] Create visualizations for gravity and radiation model predictions?

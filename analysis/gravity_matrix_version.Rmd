@@ -11,21 +11,6 @@ library(Rmpfr)
 #devtools::load_all()
 ```
 
-## Load historical data (for comparison with model predictions)
-```{r}
-# US_0910 <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
-# US_1011 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
-# US_1112 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
-# US_1213 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
-# US_1314 <- read.csv(here("results", "data_cleaning_results", "clean",  "US_1314.csv"))
-# US_1415 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
-# US_1516 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
-# US_1617 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
-# US_1718 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
-# states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
-# pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
-```
-
 ## Background research
 As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
 
@@ -41,16 +26,8 @@ knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dil
 
 I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model with power law equation, which is what they appeared to do in their [MigrationModels.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationModels.py) file.
 
-I'll put the results of each of the models in this output tibble.
-```{r}
-outputs <- tibble(
-  year = c("2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18")
-)
-```
-What will this even hold? tibbles?
 
-
-## What do I need to do?
+## What do I need to do? (make plan of action into a more coherent agenda of following content)
 
 Matrices to create:
 * distances between all i and j
@@ -62,10 +39,10 @@ Matrices to create:
 * row_sums (single value for each row, the value being the sum of all values in the numerator row)
 * P_ij = numerator / row_sums
 
-Are m_i and m_j the same matrix?
-
 ## Create distances matrix for all (i, j)
 ```{r}
+states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
+
 locations <- tibble(
   origin = rep(states_fips$fips, each = 51),
   origin_lon = rep(states_fips$longitude, each = 51),
@@ -87,7 +64,6 @@ write.csv(locations, file = filename, row.names = FALSE)
 
 
 ```{r}
-states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
 locations <- read.csv(here("results", "distances_between_states.csv"))
 
 # it was filling with negative values for some reason
@@ -101,11 +77,9 @@ rownames(distances) <- states_fips$fips
 Filling the values in by column means there'll be the same value for each row
 ```{r}
 m_i <- matrix(rep(pop_estimates$year_2009, times = 51), nrow = 51, ncol = 51)
-# m_i <- matrix(pop_estimates$year_2009, nrow = 1)
 colnames(m_i) <- states_fips$fips
 
 m_j <- matrix(rep(pop_estimates$year_2009, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
-# m_j <- matrix(pop_estimates$year_2009, ncol = 1)
 rownames(m_j) <- states_fips$fips
 ```
 
@@ -187,41 +161,41 @@ And then run it for all the other years too
 T_ij <- gravity_model(pop_estimates$year_2010, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1011.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2011, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1112.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2012, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1213.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2013, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1314.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2014, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1415.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2015, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1516.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2016, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1617.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 
 T_ij <- gravity_model(pop_estimates$year_2017, pop_estimates$fips, 0.3)
 result <- round(T_ij, 4)
 filename <- paste("alpha_",as.character(alpha), "_US1718.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
+write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
 ```
 

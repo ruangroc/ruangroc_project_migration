@@ -1,0 +1,123 @@
+---
+title: "Radiation Model"
+output: html_document
+---
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+library(Rmpfr)
+#devtools::load_all()
+```
+
+## Load historical data (for comparison with model predictions)
+```{r}
+# US_0910 <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
+# US_1011 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
+# US_1112 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
+# US_1213 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
+# US_1314 <- read.csv(here("results", "data_cleaning_results", "clean",  "US_1314.csv"))
+# US_1415 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
+# US_1516 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
+# US_1617 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
+# US_1718 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
+states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
+```
+
+## Background research
+As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
+
+  * $T_{ij}$ is the number of people moving from every zone i to every other zone j
+  * $G_i = \alpha * m_i$ is the production function that estimates number of people leaving zone i
+    * $m_i$ is the population of zone i and alpha is a parameter tuned using historical data
+  * $P_{ij}$ is the probability of a move occurring from i to j
+    * Robinson and Dilkina note that the probability of moving from i to all other destinations j should sum to 1
+
+```{r pressure, echo=FALSE, out.width = '75%'}
+knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dilkina_Table_1.PNG"))
+```
+
+To implement the radiation model, we'll need to create a matrix, $S_{ij}$ that will provide us with intervening opportunities between zones i and j that migrants would likely consider while moving to zone j.
+
+## What do I need to do?
+* Create S_ij
+* Calculate P_ij
+* Write function to calculate T_ij
+* Run the function for all 9 datasets on hand
+* Move on to comparisons with historical data, finetuning model hyperparameters, and predicting future migration
+
+## Create S_ij
+
+$s_{ij}$ is defined as the population of all zones between i and j (excluding zones i and j) within a circle centered at i with radius d_ij. This means we'll need to use our matrices for distances between zones and population estimates for every zone.
+
+**Need to make this into a function**
+```{r}
+# pair distances and population estimates together in a tibble
+all_data <- locations %>% mutate(
+  pop = rep(pop_estimates$year_2009, times = 51)
+)
+all_data <- all_data %>% select(origin, dest, distance, pop)
+all_data <- arrange(all_data, origin, distance)
+
+# calculate cumulative sums of populations in intervening zones for each i (origin state)
+results <- map(pop_estimates$fips, ~ c(0, cumsum(subset(all_data, origin == . & dest != 1)$pop)))
+all_data <- all_data %>% mutate(
+  sums = unlist(results, recursive = FALSE)
+)
+
+# rearrange the tibble to be in matrix order again, then store sum results as S_ij
+all_data <- arrange(all_data, origin, dest)
+S_ij <- matrix(as.vector(all_data$sums), nrow = 51, ncol = 51)
+colnames(S_ij) <- states_fips$fips
+rownames(S_ij) <- states_fips$fips
+
+filename <- here("results", "radiation_model_results", "intervening_opportunities_2009.csv")
+write.csv(S_ij, filename, row.names = FALSE)
+```
+
+## Calculate T_ij
+```{r}
+names <- pop_estimates$fips
+data <- pop_estimates$year_2009
+
+m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
+colnames(m_i) <- names
+
+m_j <- matrix(rep(data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
+rownames(m_j) <- names
+
+S_ij <- as.matrix(read.csv(here("results", "radiation_model_results", "intervening_opportunities_2009.csv")), nrow = 51, ncol = 51)
+
+alpha <- 0.3
+G_i <- alpha * m_i
+
+num <- matrix(as.double(mpfr(m_i, precBits = 4) * mpfr(m_j, precBits = 4)), nrow = 51, ncol = 51)
+
+denom1 <- as.matrix(m_i + S_ij)
+denom2 <- as.matrix(m_i + m_j + S_ij)
+
+denom <- matrix((mpfr(denom1, precBits = 4) * mpfr(denom2, precBits = 4)), nrow = 51, ncol = 51)
+
+d <- matrix(as.double(denom), nrow = 51, ncol = 51)
+
+P_ij <- num / d
+P <- round(P_ij, 4)
+
+normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
+P_ij <- P_ij / normalize
+
+T_ij <- round(G_i * P_ij, 4)
+```
+
+
+## Create function for calculating T_ij
+```{r}
+
+
+```
+
+
+
+
+
