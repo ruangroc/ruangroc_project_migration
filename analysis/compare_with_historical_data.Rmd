@@ -1,0 +1,40 @@
+---
+title: "Compare models and historical data"
+output: html_document
+---
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+#devtools::load_all()
+```
+
+## Load the historical data
+```{r}
+
+```
+
+## Load the gravity model predictions
+```{r}
+
+```
+
+## Load the radiation model predictions
+```{r}
+
+```
+
+## 2009-2010 data comparison
+```{r}
+historical <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
+gravity <- read.csv(here("results", "gravity_model_results", "alpha_0.3_US0910.csv"))
+radiation <- read.csv(here("results", "radiation_model_results", "alpha_0.3_US0910.csv"))
+
+
+
+```
+
+## More comparisons
+```{r}
+
+```
+

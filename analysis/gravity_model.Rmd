@@ -92,54 +92,19 @@ gravity_model <- function(data, names, alpha) {
 ```
 
 Let's run this function for all the yearly data we have on hand.
-```{r}
+```{r, warning = FALSE, message = FALSE}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+columns <- colnames(pop_estimates)
+alpha <- 0.3
 
-alpha_value <- 0.3
+generate_gravity_matrices <- function(col_name, data, alpha) {
+  if (col_name != "fips") {
+    T_ij <- gravity_model(unlist(subset(data, select = col_name)), unlist(subset(data, select = "fips")), alpha)
+    gravity_filename <- here("results", "gravity_model_results", paste("alpha_", as.character(alpha_value), "_", col_name, ".csv", sep=''))
+    write.csv(T_ij, gravity_filename, row.names = FALSE)
+  }
+}
 
-T_ij <- gravity_model(pop_estimates$year_2009, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US0910.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename))
-
-T_ij <- gravity_model(pop_estimates$year_2010, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1011.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2011, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1112.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2012, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1213.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2013, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1314.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2014, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1415.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2015, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1516.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2016, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1617.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
-
-T_ij <- gravity_model(pop_estimates$year_2017, pop_estimates$fips, alpha_value)
-result <- round(T_ij, 4)
-filename <- paste("alpha_",as.character(alpha_value), "_US1718.csv", sep = '')
-write.csv(result, here("results", "gravity_model_results", filename), row.names = FALSE)
+result <- map(columns, ~ generate_gravity_matrices(., pop_estimates, alpha))
 ```
 

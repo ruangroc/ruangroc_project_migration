@@ -1,0 +1,27 @@
+---
+title: "Simulate Future Migration"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+library(tidyverse)
+library(here)
+#devtools::load_all()
+```
+
+## Load the historical data for most recent years
+```{r}
+
+```
+
+## Find the best alpha value for simulation
+```{r}
+
+```
+
+## Predict migration flows for next 3 years
+```{r}
+
+```
+
+
