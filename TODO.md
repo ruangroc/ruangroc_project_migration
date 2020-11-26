@@ -15,12 +15,10 @@ By the end of:
 * Week 9 (Nov. 29): Code is complete and fully reproducible (first project deliverable: reproducible code in GitHub repo).  
 * Week 10 (Dec. 6): 2-page project report and full technical documentation are complete (the final project deliverables).  
 
-**11/22/20 Updated Milestones:**
+**11/25/20 Updated Milestones:**
 
-* Nov. 22: Just finished writing the gravity model stuff. 
-* Nov. 29: Write the radiation model function. Compare outputs of radiation and gravity models to the historical data and find a way to finetune the models.
-* Nov. 29: Use the finetuned gravity and radiation models to predict migration flows in the near future. Create visualizations for comparison purposes. Start making repo into an R package and write unit tests.
-* Dec. 6: Make sure code is fully reproducible and fully documented. Complete project deliverables (project report, opted out of the presentation as ST441 student).
+* Nov. 29: Make repo into an R package and write unit tests. Create visualizations for comparison purposes. 
+* Dec. 6: Finish up any coding / visualization. Make sure code is fully reproducible and fully documented. Complete project deliverables (project report, opted out of the presentation as ST441 student).
     
 ### To Do
     [x] Research and understand radiation model math, inputs, outputs.
@@ -28,11 +26,12 @@ By the end of:
     [x] Download and clean up the data.
     [ ] Perform exploratory analysis of the historical migration data.
     [x] Implement working gravity model (as described in MigrationModels.py)
-    [ ] Create visualizations to compare the gravity model to historical data (and find a good value for alpha)
+    [ ] Create visualizations to compare the gravity and radiation models to historical data 
+    [x] Find a good value for alpha for gravity and radiation models
     [x] Implement working radiation model (as described in MigrationModels.py)
-    [ ] Use gravity model to predict future migration patterns.
-    [ ] Use radiation model to predict future migration patterns.
-    [ ] Create visualizations for gravity and radiation model predictions?
+    [x] Use gravity model to predict future migration patterns.
+    [x] Use radiation model to predict future migration patterns.
+    [ ] Create visualizations for gravity and radiation model predictions
     [ ] Package the code to be fully reproducible.
     [ ] Write full technical documentation.
     [ ] Write two-page project report. (And optional lightning talk presentation slides)

@@ -8,33 +8,94 @@ library(here)
 #devtools::load_all()
 ```
 
-## Load the historical data
-```{r}
-
-```
-
-## Load the gravity model predictions
-```{r}
-
-```
-
-## Load the radiation model predictions
-```{r}
-
-```
-
 ## 2009-2010 data comparison
+
+Will be ignoring any numbers about migrations from zone i to i (moving within the same state).
+
 ```{r}
 historical <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
-gravity <- read.csv(here("results", "gravity_model_results", "alpha_0.3_US0910.csv"))
-radiation <- read.csv(here("results", "radiation_model_results", "alpha_0.3_US0910.csv"))
+gravity <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
+radiation <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
+
+# vectorized matrix starts listing things out by column, but can transpose to write it out by row
+diag(gravity) <- -1
+diag(radiation) <- -1
+
+gravity_values <- as.vector(t(gravity))
+gravity_values <- gravity_values[which(gravity_values >= 0)]
+
+radiation_values <- as.vector(t(radiation))
+radiation_values <- radiation_values[which(radiation_values >= 0)]
+
+all.equal(gravity_values, g_values)
 
 
 
+# put all values into a comparison tibble
+historical <- arrange(historical, origin_fips, dest_fips)
+compare <- historical %>% mutate(
+  gravity = gravity_values,
+  radiation = radiation_values
+)
+
+compare <- compare %>% mutate(
+  gravity_residuals = num_migrants - gravity_values,
+  radiation_residuals = num_migrants - radiation_values
+)
+
+lsrl_g <- sum(compare$gravity_residuals^2)
+lsrl_r <- sum(compare$radiation_residuals^2)
+
+(lsrl_r < lsrl_g)
 ```
 
 ## More comparisons
 ```{r}
 
+```
+
+## Load the historical data for most recent years
+```{r}
+hist_2015 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
+grav_2015 <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2015.csv")), nrow = 51, ncol = 51)
+rad_2015 <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2015.csv")), nrow = 51, ncol = 51)
+
+hist_2016 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1617.csv"))
+grav_2016 <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2016.csv")), nrow = 51, ncol = 51)
+rad_2016 <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2016.csv")), nrow = 51, ncol = 51)
+
+hist_2017 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718.csv"))
+grav_2017 <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2017.csv")), nrow = 51, ncol = 51)
+rad_2017 <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2017.csv")), nrow = 51, ncol = 51)
+
+create_comparison_df <- function(gravity, radiation, historical) {
+  if (length(gravity) != 51*51) return()
+  if (length(radiation) != 51*51) return()
+  
+  fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
+  
+  compare <- tibble(
+    origin = rep(fips, each = 51),
+    dest = rep(fips, times = 51),
+    gravity = as.vector(t(gravity)),
+    radiation = as.vector(t(radiation))
+  )
+  
+  historical <- rename(historical, origin = origin_fips, dest = dest_fips)
+
+  compare <- left_join(compare, subset(historical, select = c(num_migrants, origin, dest)), by = c("origin", "dest"))
+  compare <- subset(compare, origin != dest)
+  
+  compare <- compare %>% mutate(
+    gravity_residuals = num_migrants - gravity,
+    radiation_residuals = num_migrants - radiation
+  )
+  
+  return(compare)
+}
+
+compare_2015 <- create_comparison_df(grav_2015, rad_2015, hist_2015)
+compare_2016 <- create_comparison_df(grav_2016, rad_2015, hist_2016)
+compare_2017 <- create_comparison_df(grav_2017, rad_2015, hist_2017)
 ```
 

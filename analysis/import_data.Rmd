@@ -153,7 +153,7 @@ clean_and_write <- function(data, name, year) {
   data <- distinct(data)
   
   # and remove rows that have the totals, not origin-dest pairs
-  data <- subset(data, (data$origin_fips != 0 & data$dest_fips != 0))
+  data <- subset(data, (data$origin_fips != 0 & data$dest_fips != 0 & num_migrants != -1))
   data <- subset(data, (data$origin_fips <= 56 & data$dest_fips <= 56))
   
   # and remove rows that count non-migrants (origin and dest states are the same)
@@ -166,6 +166,10 @@ clean_and_write <- function(data, name, year) {
   filename <- here("results", "data_cleaning_results", "clean", name)
   write.csv(data, file = filename, row.names = FALSE)
 }
+```
+
+```{r}
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 
 #############################################################################################################
 # 2009-2010 data
