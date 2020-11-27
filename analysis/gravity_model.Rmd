@@ -6,9 +6,7 @@ output: html_document
 ```{r setup, message = FALSE, warning = FALSE, include = TRUE}
 library(tidyverse)
 library(here)
-library(Imap)
-library(Rmpfr)
-#devtools::load_all()
+devtools::load_all()
 ```
 
 ## Background research
@@ -29,81 +27,18 @@ I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their pap
 
 ## Create distances matrix for all (i, j)
 ```{r}
-states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
-
-locations <- tibble(
-  origin = rep(states_fips$fips, each = 51),
-  origin_lon = rep(states_fips$longitude, each = 51),
-  origin_lat = rep(states_fips$latitude, each = 51),
-  dest = rep(states_fips$fips, times = 51),
-  dest_lon = rep(states_fips$longitude, times = 51),
-  dest_lat = rep(states_fips$latitude, times = 51)
-)
-
-
-locations <- locations %>%
-  mutate(
-    distance = pmap_dbl(list(origin_lon, origin_lat, dest_lon, dest_lat, units = "miles"), gdist)
-  )
-
-filename <- here("results", "distances_between_states.csv")
-write.csv(locations, file = filename, row.names = FALSE)
-```
-
-
-## Create a function to compute gravity model prediction for every single dataset
-```{r}
-gravity_model <- function(data, names, alpha) {
-  
-  # load population estimates for each state for the given year
-  m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
-  colnames(m_i) <- names
-  m_j <- matrix(rep(data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
-  rownames(m_j) <- names
-  
-  # load distance matrix
-  locations <- read.csv(here("results", "distances_between_states.csv"))
-  # it was filling with negative values for some reason, hence the negative locations$distance
-  distances <-- matrix(-locations$distance, nrow = 51, ncol = 51, byrow = TRUE)
-  colnames(distances) <- names
-  rownames(distances) <- names
-  
-  d_alpha <- distances^(-alpha)
-  d_alpha[!is.finite(d_alpha)] <- 0
-  
-  G_i <- alpha * m_i
-  
-  part1 <- d_alpha * m_j
-  numerator <- m_i * part1
-  numerator[!is.finite(numerator)] <- 0
-  
-  denom <- matrix(rep(rowSums(part1), times = 51), nrow = 51, ncol = 51)
-  
-  P_ij <- numerator / denom
-  
-  normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
-  P_ij <- P_ij / normalize
-
-  T_ij <- G_i * P_ij
-  T_ij[T_ij < 0] <- 0
-  
-  return(T_ij)
+if (!file.exists(here("results", "distances_between_states.csv"))) {
+  create_distance_matrix()
 }
 ```
+
+
 
 Let's run this function for all the yearly data we have on hand.
 ```{r, warning = FALSE, message = FALSE}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 columns <- colnames(pop_estimates)
 alpha <- 0.3
-
-generate_gravity_matrices <- function(col_name, data, alpha) {
-  if (col_name != "fips") {
-    T_ij <- gravity_model(unlist(subset(data, select = col_name)), unlist(subset(data, select = "fips")), alpha)
-    gravity_filename <- here("results", "gravity_model_results", paste("alpha_", as.character(alpha_value), "_", col_name, ".csv", sep=''))
-    write.csv(T_ij, gravity_filename, row.names = FALSE)
-  }
-}
 
 result <- map(columns, ~ generate_gravity_matrices(., pop_estimates, alpha))
 ```

@@ -1,0 +1,20 @@
+Package: ruangroc_project_migration
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Anita",
+           family = "Ruangrotsakun",
+           role = c("aut", "cre"),
+           email = "ruangroc@oregonstate.edu"
+Description: This package contains R code for very simple gravity and radiation models of migration which are used to simulate predicted migration flows between states in the US in the next few years.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to
+    pick a license
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    purrr,
+    here,
+    Rmpfr,
+    Imap
