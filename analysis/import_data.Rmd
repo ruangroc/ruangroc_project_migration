@@ -13,6 +13,7 @@ Should I have time to extend my models to capture global migration, I plan to us
 ```{r setup, message = FALSE, warning = FALSE, include = TRUE}
 library(tidyverse)
 library(here)
+devtools::load_all()
 ```
 
 ## Create table for state FIPS and coordinates
@@ -116,16 +117,7 @@ write.csv(pop_estimates, file = filename, row.names = FALSE)
 ```
 
 
-Let's also define a function to attach the population estimates to each origin or destination fips. (We'll be calling this function in the data loading and cleaning process below).
-```{r}
-join_with_pop_ests <- function(data, year) {
-  data <- left_join(data, pop_estimates %>% select(fips, year), by = c("origin_fips" = "fips"))
-  data <- rename(data, m_i = year)
-  data <- left_join(data, pop_estimates %>% select(fips, year), by = c("dest_fips" = "fips"))
-  data <- rename(data, m_j = year)
-  data
-}
-```
+Let's use the `join_with_pop_ests()` function I created to attach the population estimates to each origin or destination fips.
 
 ## Loading the Historical Migration Data
 
@@ -142,31 +134,6 @@ head(load_US_0910)
 ```
 
 We can see that the columns aren't the same for these two tables. We also probably want to put all of this information in the same tibble format for each year so that we can later construct the migration matrices we want.
-
-```{r}
-# construct each tibble individually and write them out to files
-
-# function for cleaning and writing after data has been loaded into a standardized format
-clean_and_write <- function(data, name, year) {
-
-  # remove duplicate rows in the tibble
-  data <- distinct(data)
-  
-  # and remove rows that have the totals, not origin-dest pairs
-  data <- subset(data, (data$origin_fips != 0 & data$dest_fips != 0 & num_migrants != -1))
-  data <- subset(data, (data$origin_fips <= 56 & data$dest_fips <= 56))
-  
-  # and remove rows that count non-migrants (origin and dest states are the same)
-  data <- subset(data, (data$origin_fips != data$dest_fips))
-  
-  # and attach population estimates according to origin and destination fips
-  data <- join_with_pop_ests(data, year)
-  
-  # then write cleaned data to a csv
-  filename <- here("results", "data_cleaning_results", "clean", name)
-  write.csv(data, file = filename, row.names = FALSE)
-}
-```
 
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))

@@ -1,3 +1,4 @@
+
 create_distance_matrix <- function() {
   states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
   
@@ -60,6 +61,7 @@ generate_gravity_matrices <- function(col_name, data, alpha) {
     T_ij <- gravity_model(unlist(subset(data, select = col_name)), unlist(subset(data, select = "fips")), alpha)
     gravity_filename <- here("results", "gravity_model_results", paste("alpha_", as.character(alpha), "_", col_name, ".csv", sep=''))
     write.csv(T_ij, gravity_filename, row.names = FALSE)
+    return(T_ij)
   }
 }
 
@@ -110,12 +112,13 @@ radiation_model <- function(pop_data, intervening_data, names, alpha) {
   G_i <- alpha * m_i
   
   # Calculate P_ij in parts (have to handle computation with very large numbers)
-  num <- matrix(as.double(mpfr(m_i, precBits = 4) * mpfr(m_j, precBits = 4)), nrow = 51, ncol = 51)
+  num <- matrix(as.double(Rmpfr::mpfr(m_i, precBits = 4) * Rmpfr::mpfr(m_j, precBits = 4)), nrow = 51, ncol = 51)
   
   denom1 <- as.matrix(m_i + S_ij)
   denom2 <- as.matrix(m_i + m_j + S_ij)
-  denom <- matrix((mpfr(denom1, precBits = 4) * mpfr(denom2, precBits = 4)), nrow = 51, ncol = 51)
+  denom <- (Rmpfr::mpfr(denom1, precBits = 4) * Rmpfr::mpfr(denom2, precBits = 4))
   d <- matrix(as.double(denom), nrow = 51, ncol = 51)
+  
   
   P_ij <- num / d
   normalize <- matrix(rep(rowSums(P_ij), times = 51), nrow = 51, ncol = 51)
@@ -132,5 +135,6 @@ generate_radiation_matrices <- function(col_name, data, alpha) {
     T_ij <- radiation_model(unlist(subset(data, select = col_name)), S_ij_file, unlist(subset(data, select = "fips")), alpha)
     radiation_filename <- here("results", "radiation_model_results", paste("alpha_", as.character(alpha), "_", col_name, ".csv", sep=''))
     write.csv(T_ij, radiation_filename, row.names = FALSE)
+    return(T_ij)
   }
 }
