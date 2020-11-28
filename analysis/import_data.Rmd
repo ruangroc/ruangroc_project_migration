@@ -1,6 +1,6 @@
 ---
 title: "Let's Get the Data"
-output: github_document 
+output: html_document 
 ---
 
 I want to use more recent data, especially if I plan to predict migration flows in the near future, so I have
@@ -75,6 +75,14 @@ states_fips <- tibble(
                 -81.63, -87.91, -104.82)
 )
 
+# create the appropriate file structure if not already created
+if (!dir.exists(here("results"))) {
+  dir.create(here("results"))
+}
+if (!dir.exists(here("results", "data_cleaning_results"))) {
+  dir.create(here("results", "data_cleaning_results"))
+}
+
 # write it out to a csv to save it
 filename <- here("results", "data_cleaning_results", "states_fips.csv")
 write.csv(states_fips, file = filename, row.names = FALSE)
@@ -112,6 +120,9 @@ pop_estimates <- tibble(
 )
 
 # write it out to a csv to save it
+if (!dir.exists(here("results", "data_cleaning_results"))) {
+  dir.create(here("results", "data_cleaning_results"))
+}
 filename <- here("results", "data_cleaning_results", "population_estimates.csv")
 write.csv(pop_estimates, file = filename, row.names = FALSE)
 ```

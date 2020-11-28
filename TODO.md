@@ -17,21 +17,22 @@ By the end of:
 
 **11/25/20 Updated Milestones:**
 
-* Nov. 29: Make repo into an R package and write unit tests. Create visualizations for comparison purposes. 
-* Dec. 6: Finish up any coding / visualization. Make sure code is fully reproducible and fully documented. Complete project deliverables (project report, opted out of the presentation as ST441 student).
+* Nov. 29: Make repo into an R package and write unit tests. Create visualizations for comparison purposes. (Will need to consult with Charlotte)
+* Dec. 6: Finish up any coding / visualization. Make sure code is fully reproducible and fully documented. Complete project report (opted out of the presentation as ST441 student).
     
 ### To Do
     [x] Research and understand radiation model math, inputs, outputs.
     [x] Research and understand gravity model math, inputs, outputs.
     [x] Download and clean up the data.
-    [x] Implement working gravity model (as described in MigrationModels.py)
-    [ ] Create visualizations to compare the gravity and radiation models to historical data 
-    [x] Find a good value for alpha for gravity and radiation models
-    [x] Implement working radiation model (as described in MigrationModels.py)
+    [x] Implement working gravity model (as described in MigrationModels.py).
+    [ ] Create visualizations to compare the gravity and radiation models to historical data.
+    [x] Find a good value for alpha for gravity and radiation models.
+    [x] Implement working radiation model (as described in MigrationModels.py).
     [x] Use gravity model to predict future migration patterns.
     [x] Use radiation model to predict future migration patterns.
     [ ] Create visualizations for gravity and radiation model predictions.
     [ ] Package the code to be fully reproducible (test reproducibility).
     [ ] Write unit tests for functions.
-    [ ] Write full technical documentation (and update README)
-    [ ] Write two-page project report. (And optional lightning talk presentation slides)
+    [x] Write full technical documentation (and update README).
+    [ ] Write two-page project report.
+

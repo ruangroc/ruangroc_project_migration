@@ -33,6 +33,11 @@ pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_e
 locations <- read.csv(here("results", "distances_between_states.csv"))
 columns <- colnames(pop_estimates)
 
+# create appropriate results directory if it doesn't already exist
+if (!dir.exists(here("results", "radiation_model_results"))) {
+  dir.create(here("results", "radiation_model_results"))
+}
+
 result <- map(columns, ~ generate_int_opp_files(., pop_estimates, locations))
 ```
 
