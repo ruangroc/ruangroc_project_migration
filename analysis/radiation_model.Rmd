@@ -1,6 +1,6 @@
 ---
 title: "Radiation Model"
-output: html_document
+output: github_document
 ---
 ```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)

@@ -1,27 +1,37 @@
----
-title: "Let's Get the Data"
-output: github_document
----
-
-```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
-library(tidyverse)
-library(here)
-devtools::load_all()
-```
+Let’s Get the Data
+================
 
 ## US Migration and Population Data
 
-For historical migration data, I referred to [US Population Migration Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data), which has state inflow and outflow CSVs from 2009-2017. I downloaded the zip files for each of those years (nine in total), though I decided to remove the .xls files from the unzipped folders because I didn't use them. I also had to download the 2017-18 state inflow CSV separately because it wasn't included in the zip file for that year.
+For historical migration data, I referred to [US Population Migration
+Data](https://www.irs.gov/statistics/soi-tax-stats-migration-data),
+which has state inflow and outflow CSVs from 2009-2017. I downloaded the
+zip files for each of those years (nine in total), though I decided to
+remove the .xls files from the unzipped folders because I didn’t use
+them. I also had to download the 2017-18 state inflow CSV separately
+because it wasn’t included in the zip file for that year.
 
-The population estimates CSV came from [the census.gov website](https://www.census.gov/newsroom/press-kits/2020/subcounty-estimates.html) (listed under the Dataset header). I also had to download a CSV for population estimates from 2000-2009 from [here](https://www.census.gov/data/tables/time-series/demo/popest/intercensal-2000-2010-state.html).
+The population estimates CSV came from [the census.gov
+website](https://www.census.gov/newsroom/press-kits/2020/subcounty-estimates.html)
+(listed under the Dataset header). I also had to download a CSV for
+population estimates from 2000-2009 from
+[here](https://www.census.gov/data/tables/time-series/demo/popest/intercensal-2000-2010-state.html).
 
+## 1\. States’ FIPS and locations
 
-## 1. States' FIPS and locations
+First, let’s create a tibble to store some important information about
+each state (and Washington DC). Each state has a FIPS number to uniquely
+identify them, so I’ve listed them all in the first column and attached
+additional information to each row, such as the state acronym, state
+name, the largest city in the state, and a latitude and longitude pair
+that falls within the largest city.
 
-First, let's create a tibble to store some important information about each state (and Washington DC). Each state has a FIPS number to uniquely identify them, so I've listed them all in the first column and attached additional information to each row, such as the state acronym, state name, the largest city in the state, and a latitude and longitude pair that falls within the largest city.
+I decided to add the state acronym and name information for easier
+visualization later on. I decided to use the coordinates for the largest
+city in each state because it seems likely that is where people who are
+migrating into that state would move to.
 
-I decided to add the state acronym and name information for easier visualization later on. I decided to use the coordinates for the largest city in each state because it seems likely that is where people who are migrating into that state would move to.
-```{r}
+``` r
 states_fips <- tibble(
   fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56),
   acronym = c("AL", "AK", "AZ", "AR", "CA", "CO", 
@@ -84,11 +94,16 @@ filename <- here("results", "data_cleaning_results", "states_fips.csv")
 write.csv(states_fips, file = filename, row.names = FALSE)
 ```
 
-## 2. Annual population estimates
+## 2\. Annual population estimates
 
-Now we'll construct a table to hold all of the population estimates for the years 2009 through 2017. The estimates are listed in order of states' FIPS, which makes it easy to copy over from the 2010-2019 CSV file. However, I had to copy-paste the values by hand from the 2009 column of data in the Excel file.
+Now we’ll construct a table to hold all of the population estimates for
+the years 2009 through 2017. The estimates are listed in order of
+states’ FIPS, which makes it easy to copy over from the 2010-2019 CSV
+file. However, I had to copy-paste the values by hand from the 2009
+column of data in the Excel
+file.
 
-```{r}
+``` r
 # Load the csv containing population estimates for each state for the years 2010 thru 2019
 decade_2010s <- read.csv(here("data", "ACStables", "sub-est2019_all.csv"))
 decade_2010s <- subset(decade_2010s, SUMLEV == 40)
@@ -124,27 +139,71 @@ filename <- here("results", "data_cleaning_results", "population_estimates.csv")
 write.csv(pop_estimates, file = filename, row.names = FALSE)
 ```
 
-## 3. Historical migration data
+## 3\. Historical migration data
 
-So a big problem I noticed when I started looking through the migration data files was that the format of the data differed based on the year.
+So a big problem I noticed when I started looking through the migration
+data files was that the format of the data differed based on the year.
 
-For example, the most recent US migration dataset (2017-18) for state inflows looks like:
-```{r}
+For example, the most recent US migration dataset (2017-18) for state
+inflows looks
+like:
+
+``` r
 load_US_1718 <- read.csv(here("data", "1718migrationdata", "stateinflow1718.csv"))
 head(load_US_1718)
 ```
 
-Whereas the 2009-10 state inflow data looks like:
-```{r}
+    ##   y2_statefips y1_statefips y1_state                     y1_state_name      n1
+    ## 1            1           96       AL AL Total Migration-US and Foreign   47578
+    ## 2            1           97       AL             AL Total Migration-US   46908
+    ## 3            1           98       AL        AL Total Migration-Foreign     670
+    ## 4            1           97       AL     AL Total Migration-Same State   59337
+    ## 5            1            1       AL                   AL Non-migrants 1582765
+    ## 6            1           13       GA                           Georgia    7914
+    ##        n2       AGI
+    ## 1   97703   2754842
+    ## 2   96089   2714756
+    ## 3    1614     40086
+    ## 4  119622   2833824
+    ## 5 3468405 104423723
+    ## 6   16158    404454
+
+Whereas the 2009-10 state inflow data looks
+like:
+
+``` r
 load_US_0910 <- read.csv(here("data", "state0910", "stateinflow0910.csv"))
 head(load_US_0910)
 ```
 
-The columns aren't the same for these two tables, which can make it tricky to work with later. This is why I decided to put all of the data into a standard format containing only the information I need: origin_fips, dest_fips, and num_migrants. 
+    ##   State_Code_Dest County_Code_Dest State_Code_Origin County_Code_Origin
+    ## 1               0                0                96                  0
+    ## 2               0                0                97                  0
+    ## 3               0                0                98                  0
+    ## 4               1                0                96                  0
+    ## 5               1                0                97                  0
+    ## 6               1                0                98                  0
+    ##   State_Abbrv              State_Name Return_Num Exmpt_Num  Aggr_AGI
+    ## 1          US US Total Mig - US & For    2920977   5460987 132499511
+    ## 2          US       US Total Mig - US    2836418   5282519 128371628
+    ## 3          US  US Total Mig - Foreign      84559    178468   4127883
+    ## 4          AL AL Total Mig - US & For      42627     89395   1761417
+    ## 5          AL       AL Total Mig - US      41700     87143   1718268
+    ## 6          AL  AL Total Mig - Foreign        927      2252     43148
 
-Below, you'll see that I loaded in the inflow and outflow files and manually construct a tibble for each year of migration data because the file names and column names differed between datasets. Then I used the `clean_and_write()` function I wrote to remove duplicate and invalid entries (e.g. negative number of migrants).
+The columns aren’t the same for these two tables, which can make it
+tricky to work with later. This is why I decided to put all of the data
+into a standard format containing only the information I need:
+origin\_fips, dest\_fips, and num\_migrants.
 
-```{r}
+Below, you’ll see that I loaded in the inflow and outflow files and
+manually construct a tibble for each year of migration data because the
+file names and column names differed between datasets. Then I used the
+`clean_and_write()` function I wrote to remove duplicate and invalid
+entries (e.g. negative number of
+migrants).
+
+``` r
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 
 #############################################################################################################
@@ -276,6 +335,3 @@ US_1718 <- tibble(
 clean_and_write(US_1718, "US_1718.csv")
 #############################################################################################################
 ```
-
-
-

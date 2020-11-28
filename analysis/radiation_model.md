@@ -1,0 +1,105 @@
+Radiation Model
+================
+
+## Background research
+
+As seen in the image below and as explained in Caleb Robinson and Bistra
+Dilkina’s paper, [“A Machine Learning Approach to Modeling Human
+Migration”](https://doi.org/10.1145/3209811.3209868), the traditional
+migration models can be written as the product of two parts:
+\(T_{ij} = G_i * P_{ij}\).
+
+  - \(T_{ij}\) is the number of people moving from every zone i to every
+    other zone j
+  - \(G_i = \alpha * m_i\) is the production function that estimates
+    number of people leaving zone i
+      - \(m_i\) is the population of zone i and \(\alpha\) is a
+        parameter tuned using historical data
+  - \(P_{ij}\) is the probability of a move occurring from i to j
+      - Robinson and Dilkina note that the probability of moving from i
+        to all other destinations j should sum to
+1
+
+<img src="C:/Users/anita/Documents/ST 441/ruangroc_project_migration/documentation/project_notes/Robinson_and_Dilkina_Table_1.PNG" width="75%" />
+
+## Create table for distances between states
+
+Before we can run the radiation model, we need to know the distance
+between state i and state j for all combinations of (i, j). If we
+haven’t already done so, let’s create a table with this information
+and write it out to a CSV.
+
+``` r
+if (!file.exists(here("results", "distances_between_states.csv"))) {
+  create_distance_matrix()
+}
+```
+
+## Create intervening opportunities matrix
+
+In addition to the distances information, we’ll need to create a matrix,
+\(S_{ij}\) that will provide us with intervening opportunities between
+zones i and j that migrants would likely consider while moving to zone
+j. \(S_{ij}\) is defined as the population of all zones between i and j
+(excluding zones i and j) within a circle centered at i with radius
+d\_ij. This means we’ll need distance and population estimate
+information for each combination of (i, j) states.
+
+In
+[/R/migration\_models.R](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/R/migration_models.R),
+you’ll find a definition for two functions: `get_intervening_opps()` and
+`generate_int_opp_files()`.
+
+  - `get_intervening_opps()` is the function containing all the
+    intervening opportunities mathematical calculations and writes out a
+    migration matrix, \(S_{ij}\), to a CSV.
+  - `generate_int_opp_files()` is the function that calls
+    `get_intervening_opps()` for each column (year) of data in the
+    population estimates table we created earlier.
+
+This allows us to more efficiently create and write out the intervening
+opportunities matrices for each of the years between 2009-2017 which
+will be used in the radiation model in the next
+step.
+
+``` r
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
+columns <- colnames(pop_estimates)
+
+# create appropriate results directory if it doesn't already exist
+if (!dir.exists(here("results", "radiation_model_results"))) {
+  dir.create(here("results", "radiation_model_results"))
+}
+
+result <- map(columns, ~ generate_int_opp_files(., pop_estimates, locations))
+```
+
+## Using the radiation model
+
+Now we can generate radiation model migration matrices using the same
+setup we’ve used for the gravity model and intervening opportunities
+files.
+
+In
+[/R/migration\_models.R](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/R/migration_models.R),
+you’ll find a definition for two functions: `radiation_model()` and
+`generate_radiation_matrices()`.
+
+  - `radiation_model()` is the function containing all the radiation
+    model mathematical calculations and returns a migration matrix,
+    \(T_{ij}\).
+  - `generate_radiation_matrices()` is the function that calls
+    `radiation_model()` for each column (year) of data in the population
+    estimates table we created
+earlier.
+
+<!-- end list -->
+
+``` r
+pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+columns <- colnames(pop_estimates)
+alpha <- 0.3
+
+result <- map(columns, ~ generate_radiation_matrices(., pop_estimates, alpha))
+```
