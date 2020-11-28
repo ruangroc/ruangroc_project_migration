@@ -3,33 +3,37 @@ title: "Simulate Future Migration"
 output: html_document
 ---
 
-```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)
 library(here)
 devtools::load_all()
 ```
 
-
 ## Find the best alpha value for gravity model simulations 
 
-**Optimize alpha**: Find the lowest alpha value that will minimize the least squares residual of the gravity model values.
+**Optimize alpha**: Let's find the lowest alpha value that will minimize the sum of squared residual of the gravity model values. 
+
+To do this, let's use the `optimize()` function, which we know can find the minimum alpha if we return the sum of squared residuals from the gravity model predictions. In [/R/simulation_functions.R](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/R/simulation_functions.R), you'll find the `run_gravity_model()` function that will be used in combination with optimize.
+
+Also, we know we want to find an alpha that will help us predict migration flows in the next few years, so we'll use `optimize()` for the three most recent years of data we have on hand (2015, 2016, and 2017). Then we'll use the average alpha from those three runs to simulate migration flows in a later section.
+
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
-
+locations <- read.csv(here("results", "distances_between_states.csv"))
 
 # optimize returns: minimum = alpha, objective = residual value
 
 # minimum alpha = 0.0154
 filename <- here("results", "data_cleaning_results", "clean", "US_1516.csv")
-optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2015, hist_data_file = filename)
+optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2015, hist_data_file = filename, locations = locations)
 
 # minimum alpha = 0.0204
 filename <- here("results", "data_cleaning_results", "clean", "US_1617.csv")
-optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2016, hist_data_file = filename)
+optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2016, hist_data_file = filename, locations = locations)
 
 # minimum alpha = 0.0157
 filename <- here("results", "data_cleaning_results", "clean", "US_1718.csv")
-optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2017, hist_data_file = filename)
+optimize(f = run_gravity_model, interval = c(0, 1), year_data = pop_estimates$year_2017, hist_data_file = filename, locations = locations)
 
 gravity_alpha <- mean(c(0.0154, 0.0204, 0.0157))
 # we'll use alpha = 0.0172 for predicting future migration using gravity model
@@ -38,6 +42,11 @@ gravity_alpha <- mean(c(0.0154, 0.0204, 0.0157))
 ## Find best alpha value for radiation model simulations
 
 **Optimize alpha**: Find the lowest alpha value that will minimize the least squares residual of the radiation model values.
+
+As we did above, let's use the `optimize()` function, which we know can find the minimum alpha if we return the sum of squared residuals from the radiation model predictions. In [/R/simulation_functions.R](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/R/simulation_functions.R), you'll find the `run_radiation_model()` function that will be used in combination with optimize.
+
+Again, we know we want to find an alpha that will help us predict migration flows in the next few years, so we'll use `optimize()` for the three most recent years of data we have on hand (2015, 2016, and 2017). Then we'll use the average alpha from those three runs to simulate migration flows in a later section.
+
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 
@@ -61,28 +70,31 @@ radiation_alpha <- mean(c(0.0199, 0.0198, 0.0194))
 ```
 
 
-## Predict migration flows for next 3 years
+## Predict migration flows for 2018-2022
 
-Now that we've found the most optimal alpha values to use for predicting future migration, let's put them to use.
+Now that we've found the most optimal alpha values to use for predicting future migration, let's put them to use!
 
-The most recent data we have is for the 2017-18 tax year. We'll use the population estimates from that year as a starting point and calculate estimated population from that point onwards.
+The most recent data we have is for the 2017-18 tax year, so we'll use the population estimates from that year as a starting point. We'll calculate population estimates from that point onwards by adding the migration matrix predictions to the current year's estimates, and then feeding that forward to find the following year's population estimates, and so on.
 
 **Simulate migrations using gravity model**
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
 pop_data_2017 <- pop_estimates$year_2017
 
 # get a migration matrix for the year 2018, use it in 2019's prediction, and so on
-pop_data_2018 <- get_gravity_prediction(pop_data_2017, 2018, gravity_alpha)
-pop_data_2019 <- get_gravity_prediction(pop_data_2018, 2019, gravity_alpha)
-pop_data_2020 <- get_gravity_prediction(pop_data_2019, 2020, gravity_alpha)
-pop_data_2021 <- get_gravity_prediction(pop_data_2020, 2021, gravity_alpha)
-pop_data_2022 <- get_gravity_prediction(pop_data_2021, 2022, gravity_alpha)
+pop_data_2018 <- get_gravity_prediction(pop_data_2017, 2018, gravity_alpha, locations)
+pop_data_2019 <- get_gravity_prediction(pop_data_2018, 2019, gravity_alpha, locations)
+pop_data_2020 <- get_gravity_prediction(pop_data_2019, 2020, gravity_alpha, locations)
+pop_data_2021 <- get_gravity_prediction(pop_data_2020, 2021, gravity_alpha, locations)
+pop_data_2022 <- get_gravity_prediction(pop_data_2021, 2022, gravity_alpha, locations)
 
 # then visualize the results (population changes predicted by gravity model)
 ```
 
 **Simulate migrations using radiation model**
+
+We'll repeat the process for the radiation model here, though we'll also need to generate new intervening opportunities files for each year in addition to the radiation model migration matrices.
 
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
@@ -107,6 +119,8 @@ pop_data_2021 <- get_radiation_prediction(pop_data_2020, s_ij_file, new_s_ij_fil
 s_ij_file <- here("results", "simulation_results", "intervening_opportunities_2021.csv")
 new_s_ij_file <- here("results", "simulation_results", "intervening_opportunities_2022.csv")
 pop_data_2022 <- get_radiation_prediction(pop_data_2021, s_ij_file, new_s_ij_file, 2022, radiation_alpha)
+
+# then visualize the results (population changes predicted by radiation model)
 ```
 
 

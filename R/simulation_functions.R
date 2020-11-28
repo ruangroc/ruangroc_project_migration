@@ -4,15 +4,16 @@
 #' @param alpha = hyperparameter used in calculations
 #' @param year_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
 #' @param hist_data_file = string, path to the appropriate csv containing historical data on the recorded number of migrants
+#' @param locations = tibble containing distances between each (i, j) state combination
 #'
 #' @return = the sum of squared residuals (residual = recorded num_migrants - gravity model prediction)
 #' @export
 #'
 #' @examples
-run_gravity_model <- function(alpha, year_data, hist_data_file) {
+run_gravity_model <- function(alpha, year_data, hist_data_file, locations) {
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
   
-  T_ij <- gravity_model(year_data, fips, alpha)
+  T_ij <- gravity_model(year_data, fips, alpha, locations)
   
   compare = compare <- tibble(
     origin = rep(fips, each = 51),
@@ -40,15 +41,16 @@ run_gravity_model <- function(alpha, year_data, hist_data_file) {
 #' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
 #' @param year = the specific year of data which will be used in the name of the resulting csv file
 #' @param gravity_alpha = historically tuned hyperparameter value
+#' @param locations = tibble containing distances between each (i, j) state combination
 #'
 #' @return = a vector containing predicted population estimates for the following year given the gravity model's prediction
 #' @export
 #'
 #' @examples
-get_gravity_prediction <- function(pop_data, year, gravity_alpha) {
+get_gravity_prediction <- function(pop_data, year, gravity_alpha, locations) {
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
   
-  mig_matrix <- gravity_model(pop_data, fips, gravity_alpha)
+  mig_matrix <- gravity_model(pop_data, fips, gravity_alpha, locations)
   diag(mig_matrix) <- 0
   
   filename <- here("results", "simulation_results", paste("gravity_", as.character(year), ".csv", sep = ''))

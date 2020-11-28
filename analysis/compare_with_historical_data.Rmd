@@ -2,11 +2,13 @@
 title: "Compare models and historical data"
 output: html_document
 ---
-```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)
 library(here)
 #devtools::load_all()
 ```
+
+## Still a work in progress
 
 ## 2009-2010 data comparison
 

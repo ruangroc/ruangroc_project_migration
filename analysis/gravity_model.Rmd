@@ -3,13 +3,14 @@ title: "Gravity Model"
 output: html_document
 ---
 
-```{r setup, message = FALSE, warning = FALSE, include = TRUE}
+```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)
 library(here)
 devtools::load_all()
 ```
 
 ## Background research
+
 As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina's paper, ["A Machine Learning Approach to Modeling Human Migration"](https://doi.org/10.1145/3209811.3209868), the traditional migration models can be written as the product of two parts: $T_{ij} = G_i * P_{ij}$. 
 
   * $T_{ij}$ is the number of people moving from every zone i to every other zone j
@@ -22,19 +23,27 @@ As seen in the image below and as explained in Caleb Robinson and Bistra Dilkina
 knitr::include_graphics(here("documentation", "project_notes", "Robinson_and_Dilkina_Table_1.PNG"))
 ```
 
-I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model with power law equation, which is what they appeared to do in their [MigrationModels.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationModels.py) file.
+For now, I'll be using the alpha value of 0.3 that Robinson and Dilkina used in their paper to substitute for the beta variables in the gravity model with power law equation, which is what they appeared to do in their [MigrationModels.py](https://github.com/calebrob6/migration-lib/blob/master/MigrationModels.py) file.
 
+## Create table for distances between states
 
-## Create distances matrix for all (i, j)
+Before we can run the gravity model, we need to know the distance between state i and state j for all combinations of (i, j). If we haven't already done so, let's create a table with this information and write it out to a CSV.
+
 ```{r}
 if (!file.exists(here("results", "distances_between_states.csv"))) {
   create_distance_matrix()
 }
 ```
 
+## Using the gravity model
 
+In [/R/migration_models.R](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/R/migration_models.R), you'll find a definition for two functions: `gravity_model()` and `generate_gravity_matrices()`. 
 
-Let's run this function for all the yearly data we have on hand.
+  * `gravity_model()` is the function containing all the mathematical calculations and returns a migration matrix, $T_{ij}$.
+  * `generate_gravity_matrices()` is the function that calls `gravity_model()` for each column (year) of data in the population estimates table we created earlier. 
+
+This allows us to more efficiently create and write out predicted migration matrices for each of the years between 2009-2017 so that we can visualize the differences between the historical data and the predicted migration flow later on.
+
 ```{r, warning = FALSE, message = FALSE}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 locations <- read.csv(here("results", "distances_between_states.csv"))
