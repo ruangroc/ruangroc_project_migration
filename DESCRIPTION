@@ -18,4 +18,5 @@ Imports:
     here,
     Rmpfr,
     Imap,
-    gmp
+    gmp,
+    testthat

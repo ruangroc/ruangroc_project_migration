@@ -1,12 +1,13 @@
-join_with_pop_ests <- function(data, year) {
-  data <- left_join(data, pop_estimates %>% select(fips, year), by = c("origin_fips" = "fips"))
-  data <- rename(data, m_i = year)
-  data <- left_join(data, pop_estimates %>% select(fips, year), by = c("dest_fips" = "fips"))
-  data <- rename(data, m_j = year)
-  data
-}
-
-clean_and_write <- function(data, name, year) {
+#' Clean historical data and write out as csv file
+#'
+#' @param data = tibble with columns origin_fips, dest_fips, and num_migrants pulled from state in and out flow files
+#' @param name = name that write.csv should use when creating the file
+#'
+#' @return = no return value
+#' @export
+#'
+#' @examples
+clean_and_write <- function(data, name) {
   
   # remove duplicate rows in the tibble
   data <- distinct(data)
@@ -17,9 +18,6 @@ clean_and_write <- function(data, name, year) {
   
   # and remove rows that count non-migrants (origin and dest states are the same)
   data <- subset(data, (data$origin_fips != data$dest_fips))
-  
-  # and attach population estimates according to origin and destination fips
-  data <- join_with_pop_ests(data, year)
   
   # then write cleaned data to a csv
   filename <- here("results", "data_cleaning_results", "clean", name)

@@ -37,9 +37,10 @@ if (!file.exists(here("results", "distances_between_states.csv"))) {
 Let's run this function for all the yearly data we have on hand.
 ```{r, warning = FALSE, message = FALSE}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
+locations <- read.csv(here("results", "distances_between_states.csv"))
 columns <- colnames(pop_estimates)
 alpha <- 0.3
 
-result <- map(columns, ~ generate_gravity_matrices(., pop_estimates, alpha))
+result <- map(columns, ~ generate_gravity_matrices(., pop_estimates, alpha, locations))
 ```
 

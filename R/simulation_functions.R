@@ -1,3 +1,14 @@
+#' Run the gravity model and return the sum of squared residuals
+#' (used in combination with optimize() to find the most appropriate alpha value)
+#'
+#' @param alpha = hyperparameter used in calculations
+#' @param year_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param hist_data_file = string, path to the appropriate csv containing historical data on the recorded number of migrants
+#'
+#' @return = the sum of squared residuals (residual = recorded num_migrants - gravity model prediction)
+#' @export
+#'
+#' @examples
 run_gravity_model <- function(alpha, year_data, hist_data_file) {
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
   
@@ -24,6 +35,16 @@ run_gravity_model <- function(alpha, year_data, hist_data_file) {
   return(as.double(sum_sq_res))
 }
 
+#' Run the gravity model and return the estimated population for the following year
+#'
+#' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param year = the specific year of data which will be used in the name of the resulting csv file
+#' @param gravity_alpha = historically tuned hyperparameter value
+#'
+#' @return = a vector containing predicted population estimates for the following year given the gravity model's prediction
+#' @export
+#'
+#' @examples
 get_gravity_prediction <- function(pop_data, year, gravity_alpha) {
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
   
@@ -41,6 +62,18 @@ get_gravity_prediction <- function(pop_data, year, gravity_alpha) {
 
 ##############################################################################################
 
+#' Run the gravity model and return the sum of squared residuals
+#' (used in combination with optimize() to find the most appropriate alpha value)
+#'
+#' @param alpha = hyperparameter used in calculations
+#' @param year_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param S_ij_file = string, path to where appropriate intervening opportunities csv can be found
+#' @param hist_data_file = string, path to the appropriate csv containing historical data on the recorded number of migrants
+#'
+#' @return = the sum of squared residuals (residual = recorded num_migrants - radiation model prediction)
+#' @export
+#'
+#' @examples
 run_radiation_model <- function(alpha, year_data, S_ij_file, hist_data_file) {
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
   
@@ -67,6 +100,18 @@ run_radiation_model <- function(alpha, year_data, S_ij_file, hist_data_file) {
   return(as.double(sum_sq_res))
 }
 
+#' Run the radiation model and return the estimated population for the following year
+#'
+#' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param s_ij_file = string, path to where appropriate intervening opportunities csv can be found
+#' @param new_s_ij_file = string, name to use for a newly calculated intervening opportunities csv file
+#' @param year = the specific year of data which will be used in the name of the resulting radiation matrix csv file
+#' @param radiation_alpha = historically tuned hyperparameter value
+#'
+#' @return = a vector containing predicted population estimates for the following year given the radiation model's prediction
+#' @export
+#'
+#' @examples
 get_radiation_prediction <- function(pop_data, s_ij_file, new_s_ij_file, year, radiation_alpha) {
   locations <- read.csv(here("results", "distances_between_states.csv"))
   fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)

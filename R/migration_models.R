@@ -1,4 +1,9 @@
-
+#' Create tibble containing distances between states i and j for all combinations of (i, j)
+#'
+#' @return = no return value
+#' @export
+#'
+#' @examples
 create_distance_matrix <- function() {
   states_fips <- read.csv(here("results", "data_cleaning_results", "states_fips.csv"))
   
@@ -19,7 +24,18 @@ create_distance_matrix <- function() {
   write.csv(locations, file = filename, row.names = FALSE)
 }
 
-gravity_model <- function(data, names, alpha) {
+#' Gravity model to produce a migration matrix (a prediction)
+#'
+#' @param data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param names = list of states' FIPS id
+#' @param alpha = hyperparameter used in calculations (can be fine tuned using historical data)
+#' @param locations = tibble containing distances between each (i, j) state combination
+#'
+#' @return = migration matrix with values estimating number of migrants from states i to j for all combinations of (i, j)
+#' @export
+#'
+#' @examples
+gravity_model <- function(data, names, alpha, locations) {
   
   # load population estimates for each state for the given year
   m_i <- matrix(rep(data, times = 51), nrow = 51, ncol = 51)
@@ -27,8 +43,6 @@ gravity_model <- function(data, names, alpha) {
   m_j <- matrix(rep(data, times = 51), nrow = 51, ncol = 51, byrow = TRUE)
   rownames(m_j) <- names
   
-  # load distance matrix
-  locations <- read.csv(here("results", "distances_between_states.csv"))
   # it was filling with negative values for some reason, hence the negative locations$distance
   distances <-- matrix(-locations$distance, nrow = 51, ncol = 51, byrow = TRUE)
   colnames(distances) <- names
@@ -56,9 +70,21 @@ gravity_model <- function(data, names, alpha) {
   return(T_ij)
 }
 
-generate_gravity_matrices <- function(col_name, data, alpha) {
+#' Generate a gravity model migration matrix for each column in the population estimates tibble
+#' (used in combination with map() for more efficient file generation)
+#'
+#' @param col_name = string, name of a column in the population estimates tibble (ex: "year_2009")
+#' @param data = the population estimates tibble (pop_estimates)
+#' @param alpha = hyperparameter used in calculations (can be fine tuned using historical data)
+#' @param locations = tibble containing distances between each (i, j) state combination
+#'
+#' @return = a list of migration matrices calculated for each column of data in pop_estimates
+#' @export
+#'
+#' @examples
+generate_gravity_matrices <- function(col_name, data, alpha, locations) {
   if (col_name != "fips") {
-    T_ij <- gravity_model(unlist(subset(data, select = col_name)), unlist(subset(data, select = "fips")), alpha)
+    T_ij <- gravity_model(unlist(subset(data, select = col_name)), unlist(subset(data, select = "fips")), alpha, locations)
     gravity_filename <- here("results", "gravity_model_results", paste("alpha_", as.character(alpha), "_", col_name, ".csv", sep=''))
     write.csv(T_ij, gravity_filename, row.names = FALSE)
     return(T_ij)
@@ -68,6 +94,17 @@ generate_gravity_matrices <- function(col_name, data, alpha) {
 
 ##############################################################################################
 
+#' Calculate an intervening opportunities matrix and write it out as a csv
+#'
+#' @param locations = tibble containing distances between each (i, j) state combination
+#' @param year_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param fips = list of states' FIPS id
+#' @param filename = filename to use when writing data out to a csv
+#'
+#' @return = no return value
+#' @export
+#'
+#' @examples
 get_intervening_opps <- function(locations, year_data, fips, filename) {
   
   # pair distances and population estimates together in a tibble
@@ -92,6 +129,16 @@ get_intervening_opps <- function(locations, year_data, fips, filename) {
   write.csv(S_ij, filename, row.names = FALSE)
 }
 
+#' Generate intervening opportunity files
+#'
+#' @param col_name = string, name of a column in the population estimates tibble (ex: "year_2009")
+#' @param data = the population estimates tibble (pop_estimates)
+#' @param locations = tibble containing distances between each (i, j) state combination
+#'
+#' @return = no return value
+#' @export
+#'
+#' @examples
 generate_int_opp_files <- function(col_name, data, locations) {
   if (col_name != "fips") {
     filename <- here("results", "radiation_model_results", paste("intervening_opportunities_", col_name, ".csv", sep=''))
@@ -99,6 +146,17 @@ generate_int_opp_files <- function(col_name, data, locations) {
   }
 }
 
+#' Radiation model to produce a migration matrix (a prediction)
+#'
+#' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
+#' @param intervening_data = string, path to where appropriate intervening opportunities csv can be found
+#' @param names = a list of states' FIPS id
+#' @param alpha = hyperparameter used in calculations (can be fine tuned using historical data)
+#'
+#' @return = migration matrix with values estimating number of migrants from states i to j for all combinations of (i, j)
+#' @export
+#'
+#' @examples
 radiation_model <- function(pop_data, intervening_data, names, alpha) {
   
   # load population estimates for each state for the given year
@@ -129,6 +187,17 @@ radiation_model <- function(pop_data, intervening_data, names, alpha) {
   return(T_ij)
 }
 
+#' Generate a radiation model migration matrix for each column in the population estimates tibble
+#' (used in combination with map() for more efficient file generation)
+#'
+#' @param col_name = string, name of a column in the population estimates tibble (ex: "year_2009")
+#' @param data = the population estimates tibble (pop_estimates)
+#' @param alpha = hyperparameter used in calculations (can be fine tuned using historical data)
+#'
+#' @return = a list of migration matrices calculated for each column of data in pop_estimates
+#' @export
+#'
+#' @examples
 generate_radiation_matrices <- function(col_name, data, alpha) {
   if (col_name != "fips") {
     S_ij_file <- here("results", "radiation_model_results", paste("intervening_opportunities_", col_name, ".csv", sep=''))

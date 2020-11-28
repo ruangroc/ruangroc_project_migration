@@ -84,7 +84,6 @@ pop_data_2022 <- get_gravity_prediction(pop_data_2021, 2022, gravity_alpha)
 
 **Simulate migrations using radiation model**
 
-
 ```{r}
 pop_estimates <- read.csv(here("results", "data_cleaning_results", "population_estimates.csv"))
 pop_data_2017 <- pop_estimates$year_2017
