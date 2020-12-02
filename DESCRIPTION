@@ -19,4 +19,6 @@ Imports:
     Rmpfr,
     Imap,
     gmp,
-    testthat
+    testthat,
+    reshape,
+    ggplot2

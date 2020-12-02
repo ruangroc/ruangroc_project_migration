@@ -24,6 +24,7 @@ create_distance_matrix <- function() {
   write.csv(locations, file = filename, row.names = FALSE)
 }
 
+
 #' Gravity model to produce a migration matrix (a prediction)
 #'
 #' @param data = a vector containing population estimates for each state for a specific year (states listed in fips order)
@@ -69,6 +70,7 @@ gravity_model <- function(data, names, alpha, locations) {
   
   return(T_ij)
 }
+
 
 #' Generate a gravity model migration matrix for each column in the population estimates tibble
 #' (used in combination with map() for more efficient file generation)
@@ -129,6 +131,7 @@ get_intervening_opps <- function(locations, year_data, fips, filename) {
   write.csv(S_ij, filename, row.names = FALSE)
 }
 
+
 #' Generate intervening opportunity files
 #'
 #' @param col_name = string, name of a column in the population estimates tibble (ex: "year_2009")
@@ -145,6 +148,7 @@ generate_int_opp_files <- function(col_name, data, locations) {
     get_intervening_opps(locations, unlist(subset(data, select = col_name)), unlist(data %>% select("fips")), filename)
   }
 }
+
 
 #' Radiation model to produce a migration matrix (a prediction)
 #'
@@ -186,6 +190,7 @@ radiation_model <- function(pop_data, intervening_data, names, alpha) {
   T_ij <- round(G_i * P_ij, 4)
   return(T_ij)
 }
+
 
 #' Generate a radiation model migration matrix for each column in the population estimates tibble
 #' (used in combination with map() for more efficient file generation)

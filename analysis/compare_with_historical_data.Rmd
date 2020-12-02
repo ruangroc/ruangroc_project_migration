@@ -5,59 +5,18 @@ output: html_document
 ```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)
 library(here)
-#devtools::load_all()
-```
-
-## Still a work in progress
-
-## 2009-2010 data comparison
-
-Will be ignoring any numbers about migrations from zone i to i (moving within the same state).
-
-```{r}
-historical <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
-gravity <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
-radiation <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
-
-# vectorized matrix starts listing things out by column, but can transpose to write it out by row
-diag(gravity) <- -1
-diag(radiation) <- -1
-
-gravity_values <- as.vector(t(gravity))
-gravity_values <- gravity_values[which(gravity_values >= 0)]
-
-radiation_values <- as.vector(t(radiation))
-radiation_values <- radiation_values[which(radiation_values >= 0)]
-
-all.equal(gravity_values, g_values)
-
-
-
-# put all values into a comparison tibble
-historical <- arrange(historical, origin_fips, dest_fips)
-compare <- historical %>% mutate(
-  gravity = gravity_values,
-  radiation = radiation_values
-)
-
-compare <- compare %>% mutate(
-  gravity_residuals = num_migrants - gravity_values,
-  radiation_residuals = num_migrants - radiation_values
-)
-
-lsrl_g <- sum(compare$gravity_residuals^2)
-lsrl_r <- sum(compare$radiation_residuals^2)
-
-(lsrl_r < lsrl_g)
-```
-
-## More comparisons
-```{r}
-
+devtools::load_all()
 ```
 
 ## Load the historical data for most recent years
+Let's see how the gravity and radiation model predictions fared for the three most recent years we have on hand: 2015, 2016, and 2017. 
+We'll first load all the data and create matrices from the historical observations so it'll be easy to compute the residuals for the gravity and radiation models, which are already in matrix form.
+
+Note: we'll be ignoring migrations within states, meaning the diagonals of these matrices will be zeros.
+
 ```{r}
+# Load the data files
+
 hist_2015 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1516.csv"))
 grav_2015 <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2015.csv")), nrow = 51, ncol = 51)
 rad_2015 <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2015.csv")), nrow = 51, ncol = 51)
@@ -70,34 +29,125 @@ hist_2017 <- read.csv(here("results", "data_cleaning_results", "clean", "US_1718
 grav_2017 <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2017.csv")), nrow = 51, ncol = 51)
 rad_2017 <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2017.csv")), nrow = 51, ncol = 51)
 
-create_comparison_df <- function(gravity, radiation, historical) {
-  if (length(gravity) != 51*51) return()
-  if (length(radiation) != 51*51) return()
-  
-  fips <- c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56)
-  
-  compare <- tibble(
-    origin = rep(fips, each = 51),
-    dest = rep(fips, times = 51),
-    gravity = as.vector(t(gravity)),
-    radiation = as.vector(t(radiation))
-  )
-  
-  historical <- rename(historical, origin = origin_fips, dest = dest_fips)
-
-  compare <- left_join(compare, subset(historical, select = c(num_migrants, origin, dest)), by = c("origin", "dest"))
-  compare <- subset(compare, origin != dest)
-  
-  compare <- compare %>% mutate(
-    gravity_residuals = num_migrants - gravity,
-    radiation_residuals = num_migrants - radiation
-  )
-  
-  return(compare)
-}
-
-compare_2015 <- create_comparison_df(grav_2015, rad_2015, hist_2015)
-compare_2016 <- create_comparison_df(grav_2016, rad_2015, hist_2016)
-compare_2017 <- create_comparison_df(grav_2017, rad_2015, hist_2017)
+# Create matrices from historical data
+hist_matrix_2015 <- create_historical_matrix(hist_2015)
+hist_matrix_2016 <- create_historical_matrix(hist_2016)
+hist_matrix_2017 <- create_historical_matrix(hist_2017)
 ```
 
+### 2015 Data Comparisons
+Now let's see what the heatmaps look like for each of these year's predictions.
+```{r}
+gravity_heatmap(grav_2015, hist_matrix_2015, "2015")
+```
+
+```{r}
+radiation_heatmap(rad_2015, hist_matrix_2015, "2015")
+```
+
+### 2016 Data Comparisons
+```{r}
+gravity_heatmap(grav_2016, hist_matrix_2016, "2016")
+```
+
+```{r}
+radiation_heatmap(rad_2016, hist_matrix_2016, "2016")
+```
+
+### 2017 Data Comparisons
+```{r}
+gravity_heatmap(grav_2017, hist_matrix_2017, "2017")
+```
+
+```{r}
+radiation_heatmap(rad_2017, hist_matrix_2017, "2017")
+```
+
+
+From these maps, we can see that both models overestimate the number of migrants pretty often, as shown by the darker colors on the heatmaps. Ideally, both maps would be pretty consistently the lighter color all across the board, meaning the predictions are closer to the actual observed value. Overall, we can see that both do an okay job of estimating the number of migrants (about the same proportions of light to dark colors).
+
+## Appendix: remaining years of data comparisons
+
+### 2014
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_1415.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2014.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2014.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2014")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2014")
+```
+
+### 2013
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_1314.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2013.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2013.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2013")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2013")
+```
+
+### 2012
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_1213.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2012.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2012.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2012")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2012")
+```
+
+### 2011
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_1112.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2011.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2011.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2011")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2011")
+```
+
+### 2010
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_1011.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2010.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2010.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2010")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2010")
+```
+
+### 2009
+```{r}
+hist <- read.csv(here("results", "data_cleaning_results", "clean", "US_0910.csv"))
+grav <- as.matrix(read.csv(here("results", "gravity_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
+rad <- as.matrix(read.csv(here("results", "radiation_model_results", "alpha_0.3_year_2009.csv")), nrow = 51, ncol = 51)
+hist_matrix <- create_historical_matrix(hist)
+gravity_heatmap(grav, hist_matrix, "2009")
+
+```
+
+```{r}
+radiation_heatmap(rad, hist_matrix, "2009")
+```

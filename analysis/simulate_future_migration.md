@@ -158,8 +158,49 @@ pop_data_2020 <- get_gravity_prediction(pop_data_2019, 2020, gravity_alpha, loca
 pop_data_2021 <- get_gravity_prediction(pop_data_2020, 2021, gravity_alpha, locations)
 pop_data_2022 <- get_gravity_prediction(pop_data_2021, 2022, gravity_alpha, locations)
 
-# then visualize the results (population changes predicted by gravity model)
+# combine them all into a tibble
+pop_over_time <- tibble(
+  fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56),
+  state = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+           "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii",
+            "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+           "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+           "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+           "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", 
+           "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", 
+           "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", 
+           "West Virginia", "Wisconsin", "Wyoming"),
+  year_2017 = pop_data_2017,
+  year_2018 = pop_data_2018,
+  year_2019 = pop_data_2019,
+  year_2020 = pop_data_2020,
+  year_2021 = pop_data_2021,
+  year_2022 = pop_data_2022
+)
+
+# then visualize the population changes predicted by gravity model for whatever states you want
+graph_population_change(pop_over_time, "Oregon", "Gravity")
 ```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "California", "Gravity")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "New York", "Gravity")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "Texas", "Gravity")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
 
 **Simulate migrations using radiation model**
 
@@ -192,5 +233,46 @@ s_ij_file <- here("results", "simulation_results", "intervening_opportunities_20
 new_s_ij_file <- here("results", "simulation_results", "intervening_opportunities_2022.csv")
 pop_data_2022 <- get_radiation_prediction(pop_data_2021, s_ij_file, new_s_ij_file, 2022, radiation_alpha)
 
-# then visualize the results (population changes predicted by radiation model)
+# combine them all into a tibble
+pop_over_time <- tibble(
+  fips = c(1, 2, 4, 5, 6, 8:13, 15:42, 44:51, 53:56),
+  state = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+           "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii",
+            "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+           "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+           "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+           "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", 
+           "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", 
+           "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", 
+           "West Virginia", "Wisconsin", "Wyoming"),
+  year_2017 = pop_data_2017,
+  year_2018 = pop_data_2018,
+  year_2019 = pop_data_2019,
+  year_2020 = pop_data_2020,
+  year_2021 = pop_data_2021,
+  year_2022 = pop_data_2022
+)
+
+# then visualize the population changes predicted by gravity model for whatever states you want
+graph_population_change(pop_over_time, "Oregon", "Radiation")
 ```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "California", "Radiation")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "New York", "Radiation")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->
+
+``` r
+graph_population_change(pop_over_time, "Texas", "Radiation")
+```
+
+![](simulate_future_migration_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->

@@ -36,6 +36,7 @@ run_gravity_model <- function(alpha, year_data, hist_data_file, locations) {
   return(as.double(sum_sq_res))
 }
 
+
 #' Run the gravity model and return the estimated population for the following year
 #'
 #' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
@@ -102,6 +103,7 @@ run_radiation_model <- function(alpha, year_data, S_ij_file, hist_data_file) {
   return(as.double(sum_sq_res))
 }
 
+
 #' Run the radiation model and return the estimated population for the following year
 #'
 #' @param pop_data = a vector containing population estimates for each state for a specific year (states listed in fips order)
@@ -129,4 +131,27 @@ get_radiation_prediction <- function(pop_data, s_ij_file, new_s_ij_file, year, r
   
   get_intervening_opps(locations, new_pop_data, fips, new_s_ij_file)
   return(new_pop_data)
+}
+
+
+#' Graph predicted population change 2018-2022
+#'
+#' @param pop_over_time = tibble containing predicted population counts for all states for 2018-2022
+#' @param state_name = the name of the state you want to see the population change graph for
+#' @param model = name of the model you used (Gravity of Radiation)
+#'
+#' @return = ggplot line graph of predicted population change in the state between 2018-2022
+#' @export
+#'
+#' @examples
+graph_population_change <- function(pop_over_time, state_name, model) {
+  one_state <- tibble(
+    year = c(2017, 2018, 2019, 2020, 2021, 2022),
+    population = as.numeric(filter(pop_over_time, state == state_name) %>% select("year_2017", "year_2018", "year_2019", "year_2020", "year_2021", "year_2022"))
+  )
+  
+  ggplot(data=one_state, aes(x=year, y=population)) +
+    geom_line(color = "midnightblue") +
+    geom_point() +
+    labs(title = paste(model, "Model Predicted Population Change in", state_name, "2018-2022"))
 }
