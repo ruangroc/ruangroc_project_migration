@@ -3,7 +3,7 @@ title: "Gravity Model"
 output: github_document
 ---
 
-```{r setup, message = FALSE, warning = FALSE, include = TRUE, echo = FALSE}
+```{r setup, warning = FALSE, message = FALSE, include = TRUE, echo = FALSE}
 library(tidyverse)
 library(here)
 devtools::load_all()

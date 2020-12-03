@@ -18,18 +18,18 @@ By the end of:
     
 ### To Do
 
-    [x] Research and understand radiation model math, inputs, outputs.
-    [x] Research and understand gravity model math, inputs, outputs.
-    [x] Download and clean up the data.
-    [x] Implement working gravity model (as described in MigrationModels.py).
-    [x] Create visualizations to compare the gravity and radiation models to historical data.
-    [x] Find a good value for alpha for gravity and radiation models.
-    [x] Implement working radiation model (as described in MigrationModels.py).
-    [x] Use gravity model to predict future migration patterns.
-    [x] Use radiation model to predict future migration patterns.
-    [x] Create visualizations for gravity and radiation model predictions.
-    [ ] Package the code to be fully reproducible (test reproducibility).
-    [ ] Write unit tests for functions.
-    [x] Write full technical documentation (and update README).
-    [ ] Write two-page project report.
+    [X] Research and understand radiation model math, inputs, outputs.
+    [X] Research and understand gravity model math, inputs, outputs.
+    [X] Download and clean up the data.
+    [X] Implement working gravity model (as described in MigrationModels.py).
+    [X] Create visualizations to compare the gravity and radiation models to historical data.
+    [X] Find a good value for alpha for gravity and radiation models.
+    [X] Implement working radiation model (as described in MigrationModels.py).
+    [X] Use gravity model to predict future migration patterns.
+    [X] Use radiation model to predict future migration patterns.
+    [X] Create visualizations for gravity and radiation model predictions.
+    [X] Package the code to be fully reproducible (test reproducibility).
+    [X] Write unit tests for functions.
+    [X] Write full technical documentation (and update README).
+    [X] Write two-page project report.
 
