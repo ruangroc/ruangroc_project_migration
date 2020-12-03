@@ -10,12 +10,12 @@ The scope of this project was constrained to implementing only a radiation model
 
 ## Repo Structure
 
-A more complete project report can be found [/documentation/project_report](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/documentation/project_report). Notes I took while doing background research can be found in [/documentation/project_notes](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/documentation/project_notes)
+A more complete project report can be found [/documentation/project_report](https://github.com/ST541-Fall2020/ruangroc_project_migration/blob/main/documentation/project_report/ST441%20Project%20Report%20Modeling%20Migration.pdf). Notes I took while doing background research can be found in [/documentation/project_notes](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/documentation/project_notes)
 
 The raw data can be found in [/data](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/data).The migration data files are grouped by year, whereas the population estimates for 2009-2019 can be found under [/ACStables](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/data/ACStables).
 
 
-In [/R](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/R), you will find three files containing the functions I used. Unit tests for the most important functions can be found in [/tests/testthat](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/tests/testthat).
+In [/R](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/R), you will find three files containing the functions I wrote as well as their documentation. Some unit tests for the most important functions can be found in [/tests/testthat](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/tests/testthat).
 
 The [/analysis](https://github.com/ST541-Fall2020/ruangroc_project_migration/tree/main/analysis) folder contains the scripts I created to:
 
@@ -23,5 +23,12 @@ The [/analysis](https://github.com/ST541-Fall2020/ruangroc_project_migration/tre
   * clean up the historical data (put them all in a standard format)
   * compare the historical data to the models' predictions
   * fine tune the models and use them to simulate future migration flows (2018-2022) 
+  
+## Packages to Install
+
+If you do not already have these packages, you may need to run:
+
+  * `install.packages("Rpmfr")`
+  * `install.packages("Imap")`
 
 

@@ -18,7 +18,6 @@ Imports:
     here,
     Rmpfr,
     Imap,
-    gmp,
     testthat,
     reshape,
     ggplot2
