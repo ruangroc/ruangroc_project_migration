@@ -28,7 +28,7 @@ The [/analysis](https://github.com/ST541-Fall2020/ruangroc_project_migration/tre
 
 If you do not already have these packages, you may need to run:
 
-  * `install.packages("Rpmfr")`
+  * `install.packages("Rmpfr")`
   * `install.packages("Imap")`
 
 
